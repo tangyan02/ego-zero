@@ -40,42 +40,45 @@ class Game:
         self.history.append((x, y, self.current_player))
         self.ko = None
 
-        # Remove dead stones
-        dead_stones = self.remove_dead_stones(3 - self.current_player)
+        # Check and remove dead stones of the opponent
+        opponent = 3 - self.current_player
+        dead_stones = []
+        for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
+            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                if self.board[nx, ny] == opponent:
+                    group, has_liberty = self.get_group(nx, ny)
+                    if not has_liberty:
+                        dead_stones.extend(group)
+
         if len(dead_stones) == 1:
             self.ko = dead_stones[0]
 
-        self.current_player = 3 - self.current_player
+        for dx, dy in dead_stones:
+            self.board[dx, dy] = 0
+
+        self.current_player = opponent
         return True
 
-    def remove_dead_stones(self, player):
-        dead_stones = []
+    def get_group(self, x, y):
+        player = self.board[x, y]
+        group = []
+        has_liberty = False
         visited = np.zeros((self.board_size, self.board_size), dtype=bool)
+        stack = [(x, y)]
+        visited[x, y] = True
 
-        def has_liberty(x, y):
-            stack = [(x, y)]
-            visited[x, y] = True
-            while stack:
-                cx, cy = stack.pop()
-                for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
-                    if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
-                        if self.board[nx, ny] == 0:
-                            return True
-                        if self.board[nx, ny] == player and not visited[nx, ny]:
-                            visited[nx, ny] = True
-                            stack.append((nx, ny))
-            return False
+        while stack:
+            cx, cy = stack.pop()
+            group.append((cx, cy))
+            for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
+                if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                    if self.board[nx, ny] == 0:
+                        has_liberty = True
+                    elif self.board[nx, ny] == player and not visited[nx, ny]:
+                        visited[nx, ny] = True
+                        stack.append((nx, ny))
 
-        for x in range(self.board_size):
-            for y in range(self.board_size):
-                if self.board[x, y] == player and not visited[x, y]:
-                    if not has_liberty(x, y):
-                        dead_stones.append((x, y))
-
-        for x, y in dead_stones:
-            self.board[x, y] = 0
-
-        return dead_stones
+        return group, has_liberty
 
     def check_winner(self):
         black_score = np.sum(self.board == 1)
@@ -91,7 +94,6 @@ class Game:
 env = Game(board_size=9)
 env.reset()
 env.render()
-
 
 env.place_stone(1, 0)
 env.render()
