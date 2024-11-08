@@ -15,13 +15,13 @@ class Game:
         self.board = np.zeros((board_size, board_size), dtype=int)
         self.current_player = 1
         self.history = []
-        self.ko = None
+        self.previous_board = None
 
     def reset(self):
         self.board = np.zeros((self.board_size, self.board_size), dtype=int)
         self.current_player = 1
         self.history = []
-        self.ko = None
+        self.previous_board = None
         return self.board
 
     def is_valid_move(self, x, y):
@@ -29,16 +29,14 @@ class Game:
             return False
         if self.board[x, y] != 0:
             return False
-        if (x, y) == self.ko:
-            return False
         return True
 
     def place_stone(self, x, y):
         if not self.is_valid_move(x, y):
             return False
+
         self.board[x, y] = self.current_player
         self.history.append((x, y, self.current_player))
-        self.ko = None
 
         # Check and remove dead stones of the opponent
         opponent = 3 - self.current_player
@@ -50,11 +48,16 @@ class Game:
                     if not has_liberty:
                         dead_stones.extend(group)
 
-        if len(dead_stones) == 1:
-            self.ko = dead_stones[0]
-
         for dx, dy in dead_stones:
             self.board[dx, dy] = 0
+
+        # Check for Ko rule
+        if len(self.history) > 1 and np.array_equal(self.board, self.history[-2]):
+            # Revert the move
+            self.board[x, y] = 0
+            for dx, dy in dead_stones:
+                self.board[dx, dy] = opponent
+            return False
 
         self.current_player = opponent
         return True
@@ -95,11 +98,22 @@ env = Game(board_size=9)
 env.reset()
 env.render()
 
-env.place_stone(1, 0)
+# Set up a Ko situation
+env.place_stone(2, 2)  # Black
 env.render()
-
-env.place_stone(0, 0)
+env.place_stone(2, 3)  # White
 env.render()
-
-env.place_stone(0, 1)
+env.place_stone(3, 3)  # Black
+env.render()
+env.place_stone(1, 3)  # White
+env.render()
+env.place_stone(1, 2)  # Black
+env.render()
+env.place_stone(1, 4)  # White
+env.render()
+env.place_stone(3, 2)  # Black
+env.render()
+env.place_stone(2, 1)  # White
+env.render()
+env.place_stone(2, 4)  # Black
 env.render()
