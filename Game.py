@@ -255,7 +255,7 @@ class Game:
 
 if __name__ == "__main__":
     # 测试代码
-    game = Game(board_size=19)
+    game = Game(board_size=9)
     game.reset()
     game.render()
 
