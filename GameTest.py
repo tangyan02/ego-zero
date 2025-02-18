@@ -84,11 +84,25 @@ def test_place_stone_for_remove():
     game.render()
     print("测试落子后吃子通过")
 
+def test_place_stone_for_remove2():
+    game = Game(board_size=3)
+    # 手动设置棋盘状态以测试得分计算
+    game.board = np.array([
+        [1, 2, 1],
+        [2, 0, 2],
+        [1, 2, 1]
+    ])
+    assert game.place_stone(1, 1)
+    print()
+    game.render()
+    print("测试落子后吃子2通过")
 
-# 运行测试用例
-test_reset()
-test_is_valid_move()
-test_place_stone()
-test_pass_move()
-test_calculate_scores()
-test_place_stone_for_remove()
+if __name__ == '__main__':
+    # 运行测试用例
+    test_reset()
+    test_is_valid_move()
+    test_place_stone()
+    test_pass_move()
+    test_calculate_scores()
+    test_place_stone_for_remove()
+    test_place_stone_for_remove2()

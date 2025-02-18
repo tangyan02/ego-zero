@@ -64,7 +64,7 @@ class Game:
             return False
 
         # 检查是否为己方的眼位
-        if self.is_eye(x, y, self.current_player, temp_board):
+        if self.is_eye(x, y, self.current_player, self.board):
             return False
 
         return True
@@ -75,6 +75,7 @@ class Game:
 
         self.board[x, y] = self.current_player
         self.history.append(self.board.copy())
+        print(f"玩家 {self.current_player} 落子 {x}, {y}")
 
         # 检查并移除对手的死子
         opponent = 3 - self.current_player
@@ -115,10 +116,11 @@ class Game:
         """
         随机选择一个可落子的点落子
         """
-        print(f"当前玩家 {game.current_player}")
+        print(f"当前玩家 {self.current_player}")
         valid_moves = self.get_all_valid_moves()
         if not valid_moves:
             return False
+        # print(f"所有落子点 {valid_moves}")
         x, y = random.choice(valid_moves)
         return self.place_stone(x, y)
 
@@ -147,14 +149,29 @@ class Game:
 
     def calculate_scores(self):
         """
-        计算双方的得分，只计算棋子数，不计算领地
+        计算双方的得分，包括棋子数和领地（只计算眼位）
         """
-        black_score = np.sum(self.board == 1)
-        white_score = np.sum(self.board == 2)
+        black_stones = np.sum(self.board == 1)
+        white_stones = np.sum(self.board == 2)
+
+        black_territory = 0
+        white_territory = 0
+
+        # 遍历棋盘上的每个空位，判断是否为眼位
+        for x in range(self.board_size):
+            for y in range(self.board_size):
+                if self.board[x, y] == 0:
+                    if self.is_eye(x, y, 1):
+                        black_territory += 1
+                    elif self.is_eye(x, y, 2):
+                        white_territory += 1
+
+        black_score = black_stones + black_territory
+        white_score = white_stones + white_territory
 
         # 添加调试信息
-        print(f"黑方棋子数: {black_score}")
-        print(f"白方棋子数: {white_score}")
+        print(f"黑方棋子数: {black_stones}，领地数: {black_territory}，总分: {black_score}")
+        print(f"白方棋子数: {white_stones}，领地数: {white_territory}，总分: {white_score}")
 
         return black_score, white_score
 
@@ -200,13 +217,16 @@ class Game:
         if not all(board[nx, ny] == player for nx, ny in valid_neighbors):
             return False
 
-        # 检查对角点
+        # 检查对角点，如果对角点有对手的棋子，则不是眼位
         diagonal_neighbors = [(x - 1, y - 1), (x - 1, y + 1), (x + 1, y - 1), (x + 1, y + 1)]
         valid_diagonal_neighbors = [
             (nx, ny) for nx, ny in diagonal_neighbors if 0 <= nx < self.board_size and 0 <= ny < self.board_size
         ]
+        for nx, ny in valid_diagonal_neighbors:
+            if board[nx, ny] != 0 and board[nx, ny] != player:
+                return False
 
-        # 如果对角点有一个为空，且与之相邻的己方棋子块有超过一个棋子，则是真眼
+        # 检查对角点
         for nx, ny in valid_diagonal_neighbors:
             if board[nx, ny] == 0:
                 adjacent_neighbors = [(nx - 1, ny), (nx + 1, ny), (nx, ny - 1), (nx, ny + 1)]
@@ -235,15 +255,15 @@ class Game:
 
 if __name__ == "__main__":
     # 测试代码
-    game = Game(board_size=9)
+    game = Game(board_size=19)
     game.reset()
     game.render()
 
     for i in range(1000):
-        print(f"i = {i}")
+        print(f"第 {i} 步")
+
         if not game.place_random_stone():
             if game.pass_move() in [0, 1, 2]:
                 break
-        game.render()
 
-    print(game.calculate_scores())
+        game.render()
