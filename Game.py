@@ -70,12 +70,16 @@ class Game:
         return True
 
     def place_stone(self, x, y):
+        if x == -1 and y == -1:
+            self.pass_move()
+            return True
+
         if not self.is_valid_move(x, y):
             return False
 
         self.board[x, y] = self.current_player
         self.history.append(self.board.copy())
-        print(f"玩家 {self.current_player} 落子 {x}, {y}")
+        # print(f"玩家 {self.current_player} 落子 {x}, {y}")
 
         # 检查并移除对手的死子
         opponent = 3 - self.current_player
@@ -99,6 +103,7 @@ class Game:
 
         self.current_player = opponent
         self.pass_count = 0  # 落子后重置 pass 计数
+        # self.render()
         return True
 
     def get_all_valid_moves(self):
@@ -110,6 +115,19 @@ class Game:
             for y in range(self.board_size):
                 if self.is_valid_move(x, y):
                     valid_moves.append((x, y))
+        return valid_moves
+
+    def get_all_valid_moves_include_pass(self):
+        """
+        获取所有可落子的点
+        """
+        valid_moves = []
+        for x in range(self.board_size):
+            for y in range(self.board_size):
+                if self.is_valid_move(x, y):
+                    valid_moves.append((x, y))
+        if self.pass_count < 2 and len(valid_moves) == 0:
+            valid_moves.append((-1, -1))
         return valid_moves
 
     def place_random_stone(self):
@@ -130,10 +148,10 @@ class Game:
         """
         self.pass_count += 1
         self.current_player = 3 - self.current_player
-        print("pass count:", self.pass_count)
-        if self.pass_count >= 2:
-            return self.end_game()
-        return -1
+        # print("pass count:", self.pass_count)
+
+    def end_game_check(self):
+        return self.pass_count >= 2
 
     def end_game(self):
         """
@@ -170,8 +188,8 @@ class Game:
         white_score = white_stones + white_territory
 
         # 添加调试信息
-        print(f"黑方棋子数: {black_stones}，领地数: {black_territory}，总分: {black_score}")
-        print(f"白方棋子数: {white_stones}，领地数: {white_territory}，总分: {white_score}")
+        # print(f"黑方棋子数: {black_stones}，领地数: {black_territory}，总分: {black_score}")
+        # print(f"白方棋子数: {white_stones}，领地数: {white_territory}，总分: {white_score}")
 
         return black_score, white_score
 
@@ -252,6 +270,16 @@ class Game:
             print(' '.join(['.' if x == 0 else 'x' if x == 1 else 'o' for x in row]))
         print()
 
+    def copy(self):
+        new_game = Game(board_size=self.board_size)
+        new_game.board = self.board.copy()
+        new_game.current_player = self.current_player
+        new_game.history = [board.copy() for board in self.history]
+        new_game.ko_point = self.ko_point
+        new_game.pass_count = self.pass_count
+        new_game.ko_history = self.ko_history.copy()
+        return new_game
+
 
 if __name__ == "__main__":
     # 测试代码
@@ -263,7 +291,12 @@ if __name__ == "__main__":
         print(f"第 {i} 步")
 
         if not game.place_random_stone():
-            if game.pass_move() in [0, 1, 2]:
-                break
+            game.pass_move()
+
+        if game.end_game_check():
+            game.render()
+            break
 
         game.render()
+
+    game.calculate_scores()
