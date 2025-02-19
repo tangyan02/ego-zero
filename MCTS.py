@@ -67,6 +67,10 @@ class MCTS:
         for _ in range(self.iterations):
             self.simulate(node.game.copy())
 
+    def random_simulate(self, game):
+        while True
+
+
     def simulate(self, game):
         if game.end_game_check():
             return
@@ -80,9 +84,8 @@ class MCTS:
         if game.end_game_check():
             value = -1
         else:
-            value = random.uniform(-1, 1)
-            move = random.choice(game.get_all_valid_moves_include_pass())
-
+            move, value = random.randomGame(-1, 1)
+            node.expand()
 
         node.update(value)
 
