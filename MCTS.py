@@ -1,4 +1,3 @@
-import numpy as np
 import random
 from math import sqrt, log
 
@@ -20,12 +19,11 @@ class MCTSNode:
         """
         valid_moves = self.game.get_all_valid_moves()
         untried_moves = [move for move in valid_moves if move not in [child.move for child in self.children]]
-        move = random.choice(untried_moves)
-        new_game = self.game.copy()  # 假设 Game 类有 copy 方法来复制游戏状态
-        new_game.place_stone(*move)
-        new_node = MCTSNode(parent=self, move=move, game=new_game)
-        self.children.append(new_node)
-        return new_node
+        for move in untried_moves:
+            new_game = self.game.copy()  # 假设 Game 类有 copy 方法来复制游戏状态
+            new_game.place_stone(*move)
+            new_node = MCTSNode(parent=self, move=move, game=new_game)
+            self.children.append(new_node)
 
     def select_child(self, exploration_constant=1.414):
         """
@@ -48,7 +46,7 @@ class MCTSNode:
         if self.parent:
             self.parent.update(1 - result)
 
-    def is_terminal(self):
+    def is_leaf(self):
         """
         判断当前节点是否为终局节点
         """
@@ -56,55 +54,37 @@ class MCTSNode:
 
 
 class MCTS:
-    def __init__(self, game, iterations=1000):
-        self.game = game
+    def __init__(self, iterations=1000):
+        self.root = None
         self.iterations = iterations
 
-    def search(self):
+    def search(self, game):
         """
         进行 MCTS 搜索
         """
-        root = MCTSNode(game=self.game)
+        self.root = MCTSNode(game=game)
 
         for _ in range(self.iterations):
-            node = root
-            # 选择
-            while not node.is_terminal() and node.children:
-                node = node.select_child()
-
-            # 扩展
-            if not node.is_terminal():
-                node = node.expand()
-
-            # 模拟
-            result = self.simulate(node.game)
-
-            # 反向传播
-            node.update(result)
-
-        # 选择访问次数最多的子节点作为最佳落子
-        best_child = max(root.children, key=lambda child: child.visits)
-        print("落子 ", best_child.move, " 访问次数 ", best_child.visits)
-        return best_child.move
+            self.simulate(node.game.copy())
 
     def simulate(self, game):
-        """
-        模拟游戏直到终局
-        """
-        while True:
-            valid_moves = game.get_all_valid_moves_include_pass()
-            # print("valid_moves:", valid_moves)
-            if len(valid_moves) == 0:
-                result = game.end_game()
-                # print("result:", result)
-                if result == 1:  # 黑方胜
-                    return 1 if game.current_player == 1 else 0
-                elif result == 2:  # 白方胜
-                    return 1 if game.current_player == 2 else 0
-                else:  # 平局
-                    return 0.5
-            move = random.choice(valid_moves)
-            game.place_stone(*move)
+        if game.end_game_check():
+            return
+
+        node = self.root
+        while not node.is_leaf():
+            result = node.select_child()
+            game.place_stone(result.move)
+            node = result
+
+        if game.end_game_check():
+            value = -1
+        else:
+            value = random.uniform(-1, 1)
+            move = random.choice(game.get_all_valid_moves_include_pass())
+
+
+        node.update(value)
 
 
 if __name__ == "__main__":
@@ -113,13 +93,18 @@ if __name__ == "__main__":
     game.reset()
     game.render()
 
-    mcts = MCTS(game, iterations=1000)
+    node = MCTSNode(game=game)
+    mcts = MCTS(iterations=1000)
+    mcts.root = node
 
     for i in range(1000):
         print(f"第 {i} 步")
 
-        move = mcts.search()
-        game.place_stone(*move)
+        mcts.search(game)
+        best_child = max(mcts.root.children, key=lambda child: child.visits)
+        print("落子 ", best_child.move, " 访问次数 ", best_child.visits)
+
+        game.place_stone(best_child.move)
         if game.end_game_check():
             break
 
