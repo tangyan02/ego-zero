@@ -40,9 +40,10 @@ def test_place_stone():
 # 测试 pass 操作
 def test_pass_move():
     game = Game(board_size=9)
-    assert game.pass_move() == -1 # 第一次 pass 不应该结束游戏
-    result = game.pass_move()  # 第二次 pass 应该结束游戏
-    assert result in [0, 1, 2]  # 终局结果应该是 0（平局）、1（黑方胜）或 2（白方胜）
+    game.pass_move()
+    assert not game.end_game_check()  # 第一次 pass 不应该结束游戏
+    game.pass_move()  # 第二次 pass 应该结束游戏
+    assert game.end_game() in [0, 1, 2]  # 终局结果应该是 0（平局）、1（黑方胜）或 2（白方胜）
     print("pass 操作测试通过")
 
 
