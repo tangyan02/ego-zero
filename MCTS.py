@@ -2,9 +2,10 @@ import random
 from math import sqrt, log
 
 from Game import Game
+from tqdm import tqdm
 
 
-class MCTSNode:
+class Node:
     def __init__(self, parent=None, move=None, game=None):
         self.parent = parent  # 父节点
         self.move = move  # 从父节点到当前节点的落子动作
@@ -21,8 +22,8 @@ class MCTSNode:
         untried_moves = [move for move in valid_moves if move not in [child.move for child in self.children]]
         for move in untried_moves:
             new_game = self.game.copy()  # 假设 Game 类有 copy 方法来复制游戏状态
-            new_game.place_stone(*move)
-            new_node = MCTSNode(parent=self, move=move, game=new_game)
+            new_game.make_move(*move)
+            new_node = Node(parent=self, move=move, game=new_game)
             self.children.append(new_node)
 
     def select_child(self, exploration_constant=1.414):
@@ -50,7 +51,7 @@ class MCTSNode:
         """
         判断当前节点是否为终局节点
         """
-        return len(self.game.get_all_valid_moves_include_pass()) == 0
+        return len(self.children) == 0
 
 
 class MCTS:
@@ -62,13 +63,34 @@ class MCTS:
         """
         进行 MCTS 搜索
         """
-        self.root = MCTSNode(game=game)
+        self.root = Node(game=game)
 
-        for _ in range(self.iterations):
+        bar = tqdm(total=self.iterations)
+        for i in range(self.iterations):
+            # print(f"第 {i} 次模拟")
+            bar.update(1)
             self.simulate(node.game.copy())
 
+        bar.close()
+
     def random_simulate(self, game):
-        while True
+        start_player = game.current_player
+        while True:
+            moves = game.get_all_valid_moves_include_pass()
+            # print("moves", moves)
+            move = random.choice(moves)
+            # print('move ', move)
+            game.make_move(move[0], move[1])
+            # game.render()
+
+            if game.end_game_check():
+                result = game.calculate_winner()
+                if result == 0:
+                    return 0
+                if result == start_player:
+                    return 1
+                if result == 3 - start_player:
+                    return -1
 
 
     def simulate(self, game):
@@ -78,13 +100,13 @@ class MCTS:
         node = self.root
         while not node.is_leaf():
             result = node.select_child()
-            game.place_stone(result.move)
+            game.make_move(result.move[0], result.move[1])
             node = result
 
         if game.end_game_check():
             value = -1
         else:
-            move, value = random.randomGame(-1, 1)
+            value = self.random_simulate(game)
             node.expand()
 
         node.update(value)
@@ -96,7 +118,7 @@ if __name__ == "__main__":
     game.reset()
     game.render()
 
-    node = MCTSNode(game=game)
+    node = Node(game=game)
     mcts = MCTS(iterations=1000)
     mcts.root = node
 
@@ -107,7 +129,7 @@ if __name__ == "__main__":
         best_child = max(mcts.root.children, key=lambda child: child.visits)
         print("落子 ", best_child.move, " 访问次数 ", best_child.visits)
 
-        game.place_stone(best_child.move)
+        game.make_move(best_child.move[0], best_child.move[1])
         if game.end_game_check():
             break
 

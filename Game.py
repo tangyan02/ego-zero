@@ -1,3 +1,5 @@
+from distutils.command.check import check
+
 import numpy as np
 import random
 
@@ -37,6 +39,10 @@ class Game:
         temp_board = self.board.copy()
         temp_board[x, y] = self.current_player
 
+        # 检查单劫循环
+        if (x, y) in self.ko_history and np.array_equal(temp_board, self.history[-1]):
+            return False
+
         # 检查并移除对手的死子
         opponent = 3 - self.current_player
         dead_stones = []
@@ -59,17 +65,13 @@ class Game:
         if len(self.history) > 0 and self.ko_point == (x, y) and np.array_equal(temp_board, self.history[-1]):
             return False
 
-        # 检查单劫循环
-        if (x, y) in self.ko_history and np.array_equal(temp_board, self.history[-1]):
-            return False
-
         # 检查是否为己方的眼位
         if self.is_eye(x, y, self.current_player, self.board):
             return False
 
         return True
 
-    def place_stone(self, x, y):
+    def make_move(self, x, y):
         if x == -1 and y == -1:
             self.pass_move()
             return True
@@ -130,7 +132,7 @@ class Game:
             valid_moves.append((-1, -1))
         return valid_moves
 
-    def place_random_stone(self):
+    def make_random_move(self):
         """
         随机选择一个可落子的点落子
         """
@@ -140,7 +142,7 @@ class Game:
             return False
         # print(f"所有落子点 {valid_moves}")
         x, y = random.choice(valid_moves)
-        return self.place_stone(x, y)
+        return self.make_move(x, y)
 
     def pass_move(self):
         """
@@ -153,7 +155,7 @@ class Game:
     def end_game_check(self):
         return self.pass_count >= 2
 
-    def end_game(self):
+    def calculate_winner(self):
         """
         处理终局情况，计算双方得分并判断胜负
         """
@@ -225,45 +227,39 @@ class Game:
         if board[x, y] != 0:
             return False
 
-        # 获取周围的合法邻点
-        neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-        valid_neighbors = [
-            (nx, ny) for nx, ny in neighbors if 0 <= nx < self.board_size and 0 <= ny < self.board_size
-        ]
+        # 统计空点和我方点
+        deltaList = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1),
+                     (x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
 
-        # 如果周围的点不全是己方棋子，则不是眼位
-        if not all(board[nx, ny] == player for nx, ny in valid_neighbors):
-            return False
+        self_count = 0
+        for dx, dy in deltaList:
+            if 0 <= dx < self.board_size and 0 <= dy < self.board_size:
+                if board[dx, dy] == player:
+                    self_count += 1
 
-        # 检查对角点，如果对角点有对手的棋子，则不是眼位
-        diagonal_neighbors = [(x - 1, y - 1), (x - 1, y + 1), (x + 1, y - 1), (x + 1, y + 1)]
-        valid_diagonal_neighbors = [
-            (nx, ny) for nx, ny in diagonal_neighbors if 0 <= nx < self.board_size and 0 <= ny < self.board_size
-        ]
-        for nx, ny in valid_diagonal_neighbors:
-            if board[nx, ny] != 0 and board[nx, ny] != player:
-                return False
+        # 角落
+        if (x, y) in [(0, 0), (0, self.board_size - 1), (0, self.board_size - 1),
+                      (self.board_size - 1, self.board_size - 1)]:
+            if self_count == 3:
+                return True
 
-        # 检查对角点
-        for nx, ny in valid_diagonal_neighbors:
-            if board[nx, ny] == 0:
-                adjacent_neighbors = [(nx - 1, ny), (nx + 1, ny), (nx, ny - 1), (nx, ny + 1)]
-                valid_adjacent_neighbors = [
-                    (ax, ay) for ax, ay in adjacent_neighbors if 0 <= ax < self.board_size and 0 <= ay < self.board_size
-                ]
-                for ax, ay in valid_adjacent_neighbors:
-                    if board[ax, ay] == player:
-                        group, _ = self.get_group(ax, ay, board)
-                        if len(group) > 1:
-                            return True
+        # 边
+        if x == 0 or y == 0 or x == self.board_size - 1 or y == self.board_size - 1:
+            if self_count == 5:
+                return True
 
-        # 检查是否为假眼
-        for nx, ny in valid_neighbors:
-            group, _ = self.get_group(nx, ny, board)
-            if len(group) == 1:
-                return False
+        # 中间
+        if self_count >= 7:
+            # 保障上下左右都是我方点
+            self_cross_count = 0
+            cross_points = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+            for cx, cy in cross_points:
+                if self.board[cx, cy] == player:
+                    self_cross_count += 1
+            if self_cross_count == 4:
+                return True
 
-        return True
+        return False
 
     def render(self):
         for row in self.board:
@@ -290,7 +286,7 @@ if __name__ == "__main__":
     for i in range(1000):
         print(f"第 {i} 步")
 
-        if not game.place_random_stone():
+        if not game.make_random_move():
             game.pass_move()
 
         if game.end_game_check():

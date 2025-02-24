@@ -27,13 +27,43 @@ def test_is_valid_move():
     print("落子有效性测试通过")
 
 
+def test_is_eye():
+    game = Game(board_size=6)
+    game.board = np.array([
+        [1, 1, 0, 0, 0, 0],
+        [1, 0, 1, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 0],
+        [0, 0, 0, 1, 0, 1],
+        [0, 0, 0, 1, 1, 1]
+    ])
+
+    assert game.is_eye(1, 1, 1, game.board)
+    assert game.is_eye(4, 4, 1, game.board)
+
+    game = Game(board_size=6)
+    game.board = np.array([
+        [0, 1, 0, 1, 0, 0],
+        [1, 1, 1, 1, 0, 0],
+        [1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1],
+        [0, 0, 0, 1, 1, 1]
+    ])
+
+    assert game.is_eye(0, 0, 1, game.board)
+    assert game.is_eye(0, 2, 1, game.board)
+    assert game.is_eye(4, 4, 1, game.board)
+    print("落子有效性测试通过")
+
+
 # 测试落子操作
 def test_place_stone():
     game = Game(board_size=9)
     x, y = 0, 0
-    assert game.place_stone(x, y)  # 第一次落子应该成功
+    assert game.make_move(x, y)  # 第一次落子应该成功
     assert game.board[x, y] == 1  # 落子后该位置应该是黑棋（当前玩家为1）
-    assert not game.place_stone(x, y)  # 再次落子到同一位置应该失败
+    assert not game.make_move(x, y)  # 再次落子到同一位置应该失败
     print("落子操作测试通过")
 
 
@@ -43,7 +73,7 @@ def test_pass_move():
     game.pass_move()
     assert not game.end_game_check()  # 第一次 pass 不应该结束游戏
     game.pass_move()  # 第二次 pass 应该结束游戏
-    assert game.end_game() in [0, 1, 2]  # 终局结果应该是 0（平局）、1（黑方胜）或 2（白方胜）
+    assert game.calculate_winner() in [0, 1, 2]  # 终局结果应该是 0（平局）、1（黑方胜）或 2（白方胜）
     print("pass 操作测试通过")
 
 
@@ -75,15 +105,16 @@ def test_place_stone_for_remove():
         [0, 1, 0],
         [2, 0, 1]
     ])
-    assert game.place_stone(0, 1)
-    assert not game.place_stone(1, 2)
-    assert game.place_stone(1, 0)
-    assert game.place_stone(1, 2)
-    assert not game.place_stone(1, 2)
-    assert not game.place_stone(2, 0)
+    assert game.make_move(0, 1)
+    assert not game.make_move(1, 2)
+    assert game.make_move(1, 0)
+    assert game.make_move(1, 2)
+    assert not game.make_move(1, 2)
+    assert not game.make_move(2, 0)
     print()
     game.render()
     print("测试落子后吃子通过")
+
 
 def test_place_stone_for_remove2():
     game = Game(board_size=3)
@@ -93,10 +124,29 @@ def test_place_stone_for_remove2():
         [2, 0, 2],
         [1, 2, 1]
     ])
-    assert game.place_stone(1, 1)
+    assert game.make_move(1, 1)
     print()
     game.render()
     print("测试落子后吃子2通过")
+
+
+def test_single_ko_cycle():
+    game = Game(board_size=4)
+    game.reset()
+
+    game.board = np.array([
+        [2, 0, 2, 1],
+        [0, 2, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ])
+
+    print()
+    game.make_move(0, 1)
+    game.render()
+
+    assert not game.is_valid_move(0, 2)
+
 
 if __name__ == '__main__':
     # 运行测试用例
@@ -107,3 +157,4 @@ if __name__ == '__main__':
     test_calculate_scores()
     test_place_stone_for_remove()
     test_place_stone_for_remove2()
+    test_single_ko_cycle()
