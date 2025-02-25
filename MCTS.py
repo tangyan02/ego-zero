@@ -18,7 +18,7 @@ class Node:
         """
         扩展节点，选择一个未被探索的动作并创建新的子节点
         """
-        valid_moves = self.game.get_all_valid_moves()
+        valid_moves = self.game.get_all_valid_moves_include_pass()
         untried_moves = [move for move in valid_moves if move not in [child.move for child in self.children]]
         for move in untried_moves:
             new_game = self.game.copy()  # 假设 Game 类有 copy 方法来复制游戏状态

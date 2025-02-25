@@ -27,6 +27,20 @@ def test_is_valid_move():
     print("落子有效性测试通过")
 
 
+def test_is_eye_pair():
+    game = Game(board_size=6)
+    game.board = np.array([
+        [1, 1, 1, 0, 0, 0],
+        [1, 0, 1, 0, 0, 0],
+        [1, 1, 0, 1, 0, 0],
+        [0, 1, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 1, 1]
+    ])
+    assert game.is_eye_pair(1, 1, 1, game.board)
+    assert game.is_eye_pair(2, 2, 1, game.board)
+
+
 def test_is_eye():
     game = Game(board_size=6)
     game.board = np.array([
@@ -148,6 +162,26 @@ def test_single_ko_cycle():
     assert not game.is_valid_move(0, 2)
 
 
+def test_make_move():
+    data = """
+    . x x x x x . x .
+    x x x x x x x . x
+    x . x . x x x x x
+    x x x x x . x o .
+    x x x x x x x x x
+    . x x x o x o x x
+    x x x o o o o o o
+    x x o o o o . o o
+    x o o o o o o . o
+    """
+    game = Game(board_size=9)
+    game.parse(data)
+    print(game.get_all_valid_moves_include_pass())
+    assert len(game.get_all_valid_moves_include_pass()) == 1
+
+    game.render()
+
+
 if __name__ == '__main__':
     # 运行测试用例
     test_reset()
@@ -158,3 +192,5 @@ if __name__ == '__main__':
     test_place_stone_for_remove()
     test_place_stone_for_remove2()
     test_single_ko_cycle()
+    test_is_eye()
+    test_is_eye_pair()

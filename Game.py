@@ -20,6 +20,24 @@ class Game:
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
         self.ko_history = []  # 记录劫的历史状态，用于处理单劫循环
 
+    def parse(self, data):
+        x, y = (0, 0)
+        for line in data.split("\n"):
+            line = line.strip()
+            if line == "":
+                continue
+            items = line.split(" ")
+            for item in items:
+                if item == "x":
+                    self.board[x, y] = 1
+                if item == "o":
+                    self.board[x, y] = 2
+                if item == ".":
+                    self.board[x, y] = 0
+                y += 1
+            y = 0
+            x += 1
+
     def reset(self):
         self.board = np.zeros((self.board_size, self.board_size), dtype=int)
         self.current_player = 1
@@ -218,6 +236,81 @@ class Game:
 
         return group, has_liberty
 
+    def is_eye_pair(self, x, y, player, board=None):
+        """
+        判断相邻的眼位
+        x x x .
+        x . x x
+        x x . x
+        . x x x
+        """
+        if board is None:
+            board = self.board
+
+        if not self.is_cross_eye(x, y, player, board):
+            return False
+
+        opp_count, corner_blank_count, cross_blank_count = self.count_around(x, y, player, board)
+        if opp_count > 0 or cross_blank_count > 0 or corner_blank_count > 2:
+            return False
+
+        # 对角
+        corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
+        for px, py in corner_list:
+            if 0 <= px < self.board_size and 0 <= py < self.board_size and self.is_cross_eye(px, py, player, board):
+                p_opp_count, p_corner_blank_count, p_cross_blank_count = self.count_around(px, py , player, board)
+                if p_opp_count == 0 and p_cross_blank_count == 0 and p_corner_blank_count + corner_blank_count <= 3:
+                    return True
+        return False
+
+    def count_around(self, x, y, player, board=None):
+        """
+        返回周围对手的点个数和对角空点个数和相邻点空点个数
+        """
+        if board is None:
+            board = self.board
+
+        opp_count = 0
+        corner_blank_count = 0
+        cross_blank_count = 0
+
+        # 相邻
+        cross_list = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        # 对角
+        corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
+        for px, py in cross_list:
+            if 0 <= px < self.board_size and 0 <= py < self.board_size:
+                if board[px][py] == 3 - player:
+                    opp_count += 1
+                if board[px][py] == 0:
+                    cross_blank_count += 1
+
+        for px, py in corner_list:
+            if 0 <= px < self.board_size and 0 <= py < self.board_size:
+                if board[px][py] == 3 - player:
+                    opp_count += 1
+                if board[px][py] == 0:
+                    corner_blank_count += 1
+
+        return opp_count, corner_blank_count, cross_blank_count
+
+    def is_cross_eye(self, x, y, player, board=None):
+        """
+        仅判断上下左右均为己方
+        """
+        if board is None:
+            board = self.board
+        if board[x, y] != 0:
+            return False
+
+        # 相邻
+        cross_list = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        for px, py in cross_list:
+            if 0 <= px < self.board_size and 0 <= py < self.board_size:
+                if board[px][py] != player:
+                    return False
+        return True
+
     def is_eye(self, x, y, player, board=None):
         """
         判断指定位置是否为某一方的眼位
@@ -227,37 +320,12 @@ class Game:
         if board[x, y] != 0:
             return False
 
-        # 统计空点和我方点
-        deltaList = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1),
-                     (x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
+        opp_count, corner_blank_count, cross_blank_count = self.count_around(x, y, player, board)
+        if cross_blank_count == 0 and opp_count == 0 and cross_blank_count <= 1:
+            return True
 
-        self_count = 0
-        for dx, dy in deltaList:
-            if 0 <= dx < self.board_size and 0 <= dy < self.board_size:
-                if board[dx, dy] == player:
-                    self_count += 1
-
-        # 角落
-        if (x, y) in [(0, 0), (0, self.board_size - 1), (0, self.board_size - 1),
-                      (self.board_size - 1, self.board_size - 1)]:
-            if self_count == 3:
-                return True
-
-        # 边
-        if x == 0 or y == 0 or x == self.board_size - 1 or y == self.board_size - 1:
-            if self_count == 5:
-                return True
-
-        # 中间
-        if self_count >= 7:
-            # 保障上下左右都是我方点
-            self_cross_count = 0
-            cross_points = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-            for cx, cy in cross_points:
-                if self.board[cx, cy] == player:
-                    self_cross_count += 1
-            if self_cross_count == 4:
-                return True
+        if self.is_eye_pair(x, y, player, board):
+            return True
 
         return False
 
