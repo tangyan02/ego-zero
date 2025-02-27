@@ -3,7 +3,7 @@ import time
 import numpy as np
 import torch
 
-from Network import get_network, save_network
+from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
 
@@ -50,9 +50,9 @@ episode = 100000
 
 # 模型初始化
 device = getDevice()
-network, optimizer = get_network(device, lr)
+network, optimizer = get_model(device, lr)
 
-save_network(network, optimizer)
+save_model(network, optimizer)
 network.to("cpu")
 torch.cuda.empty_cache()
 
@@ -76,8 +76,8 @@ for i_episode in range(1, episode + 1):
     train(extended_data, network, device, optimizer, batch_size, i_episode)
 
     if i_episode % 100 == 0:
-        save_network(network, optimizer, f"_{i_episode}")
-    save_network(network, optimizer)
+        save_model(network, optimizer, f"_{i_episode}")
+    save_model(network, optimizer)
     print(getTimeStr() + f"最新模型已保存 episode:{i_episode}")
 
     # 网络移动到CPU用，释放内存

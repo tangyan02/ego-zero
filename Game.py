@@ -99,8 +99,8 @@ class Game:
             self.pass_move()
             return True
 
-        if not self.is_valid_move(x, y):
-            return False
+        # if not self.is_valid_move(x, y):
+        #     return False
 
         self.board[x, y] = self.current_player
         self.history.append(self.board.copy())
@@ -348,30 +348,6 @@ class Game:
         new_game.pass_count = self.pass_count
         new_game.ko_history = self.ko_history.copy()
         return new_game
-
-    def get_state(self):
-        limit = 8
-        tensor = torch.zeros(limit * 2, self.board_size, self.board_size,device= self.device)
-        k = 0
-        for board in self.history[-limit:][::-1]:
-            for x in range(self.board_size):
-                for y in range(self.board_size):
-                    if board[x][y] == self.current_player:
-                        tensor[k, x, y] = 1
-                    else:
-                        tensor[k, x, y] = 0
-            k = k + 1
-
-        k = limit
-        for board in self.history[-limit:][::-1]:
-            for x in range(self.board_size):
-                for y in range(self.board_size):
-                    if board[x][y] == 3 - self.current_player:
-                        tensor[k, x, y] = 1
-                    else:
-                        tensor[k, x, y] = 0
-            k = k + 1
-        return tensor
 
 
 if __name__ == "__main__":

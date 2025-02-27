@@ -6,39 +6,36 @@ import Utils
 from Game import Game
 from tqdm import tqdm
 
-from Network import get_network
-
 
 class Node:
-    def __init__(self, parent=None, move=None, game=None):
+    def __init__(self, parent=None, move=None):
         self.parent = parent  # 父节点
         self.move = move  # 从父节点到当前节点的落子动作
-        self.game = game  # 当前的游戏状态
         self.children = []  # 子节点列表
-        self.wins = 0  # 该节点获胜的次数
+        self.value = 0  # 该节点获胜的次数
         self.visits = 0  # 该节点被访问的次数
+        self.prob = 0
 
-    def expand(self):
+    def expand(self, moves, probs):
         """
         扩展节点，选择一个未被探索的动作并创建新的子节点
         """
-        valid_moves = self.game.get_all_valid_moves_include_pass()
-        untried_moves = [move for move in valid_moves if move not in [child.move for child in self.children]]
-        for move in untried_moves:
-            new_game = self.game.copy()  # 假设 Game 类有 copy 方法来复制游戏状态
-            new_game.make_move(*move)
-            new_node = Node(parent=self, move=move, game=new_game)
+        for idx, move in enumerate(moves):
+            new_node = Node(parent=self, move=move)
+            new_node.prob = probs[idx]
             self.children.append(new_node)
 
-    def select_child(self, exploration_constant=1.414):
+    def select_child(self, exploration_constant):
         """
         选择具有最大 UCT 值的子节点
         """
 
         def uct(child):
-            if child.visits == 0:
-                return float('inf')
-            return (child.wins / child.visits) + exploration_constant * sqrt(log(self.visits) / child.visits)
+            q = 0
+            if child.visits > 0:
+                q = child.value / child.visits
+            return q + exploration_constant * child.prob * sqrt(
+                log(self.visits) / (1 + child.visits))
 
         return max(self.children, key=uct)
 
@@ -47,9 +44,9 @@ class Node:
         反向传播，更新从当前节点到根节点的所有节点的访问次数和获胜次数
         """
         self.visits += 1
-        self.wins += result
+        self.value += result
         if self.parent:
-            self.parent.update(1 - result)
+            self.parent.update(-result)
 
     def is_leaf(self):
         """
@@ -59,7 +56,7 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, model, iterations=1000, exploration_constant=1.414):
+    def __init__(self, model, iterations, exploration_constant=1.414):
         self.root = None
         self.iterations = iterations
         self.model = model
@@ -69,13 +66,13 @@ class MCTS:
         """
         进行 MCTS 搜索
         """
-        self.root = Node(game=game)
+        self.root = Node()
 
         bar = tqdm(total=self.iterations)
         for i in range(self.iterations):
             # print(f"第 {i} 次模拟")
             bar.update(1)
-            self.simulate(node.game.copy())
+            self.simulate(game.copy())
 
         bar.close()
 
@@ -104,15 +101,29 @@ class MCTS:
 
         node = self.root
         while not node.is_leaf():
-            result = node.select_child()
+            result = node.select_child(self.exploration_constant)
             game.make_move(result.move[0], result.move[1])
             node = result
 
         if game.end_game_check():
-            value = -1
+            winner = game.calculate_winner()
+            if winner == game.current_player:
+                return 1
+            if winner == 3 - game.current_player:
+                return -1
+            return 0
         else:
-            value = model(game.get_state())[0].item()
-            node.expand()
+            value, probs = Network.evaluate_state(self.model, Network.get_state(game))
+            valid_moves = game.get_all_valid_moves_include_pass()
+            probs_arr = []
+            if len(valid_moves) > 1:
+                for move in valid_moves:
+                    idx = move[0] * game.board_size + move[1]
+                    probs_arr.append(probs[0][idx])
+            else:
+                probs_arr.append(1)
+
+            node.expand(valid_moves, probs_arr)
 
         node.update(value)
 
@@ -126,9 +137,9 @@ if __name__ == "__main__":
     lr = 1e-3
     device = Utils.getDevice()
 
-    model, _ = Network.get_network(device, lr)
-    node = Node(game=game)
-    mcts = MCTS(iterations=1000, model=model)
+    model, _ = Network.get_model(device, lr)
+    node = Node()
+    mcts = MCTS(iterations=800, model=model, exploration_constant=3)
     mcts.root = node
 
     for i in range(1000):
@@ -137,9 +148,10 @@ if __name__ == "__main__":
         mcts.search(game)
         best_child = max(mcts.root.children, key=lambda child: child.visits)
         sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
-        moves = [(child.move, child.visits) for child in sorted_children]
+        moves = [(child.move, child.visits, child.value) for child in sorted_children]
         print("可选落子", moves)
-        print("玩家 ", game.current_player, "落子 ", best_child.move, " 访问次数 ", best_child.visits)
+        print("玩家 ", game.current_player, "落子 ", best_child.move,
+              "访问次数 ", best_child.visits, "得分 ",best_child.value)
         game.make_move(best_child.move[0], best_child.move[1])
         if game.end_game_check():
             break

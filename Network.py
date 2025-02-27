@@ -96,38 +96,38 @@ class PolicyValueNetwork(nn.Module):
         return x_val, x_act
 
 
-def get_network(device, lr):
-    network = PolicyValueNetwork()
-    network.to(device)  # 将网络移动到设备
+def get_model(device, lr):
+    model = PolicyValueNetwork()
+    model.to(device)  # 将网络移动到设备
 
     # 定义优化器
-    optimizer = optim.Adam(network.parameters(), lr)
+    optimizer = optim.Adam(model.parameters(), lr)
 
     if os.path.exists(f"model/checkpoint.pth"):
         checkpoint = torch.load("model/checkpoint.pth", device)
-        network.load_state_dict(checkpoint['model_state_dict'])
+        model.load_state_dict(checkpoint['model_state_dict'])
 
         # 重新定义优化器，确保优化器的状态在正确的设备上
-        optimizer = optim.Adam(network.parameters(), lr)
+        optimizer = optim.Adam(model.parameters(), lr)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-    return network, optimizer
+    return model, optimizer
 
 
-def save_network(network, optimizer, boardSize, subfix="", ):
+def save_model(model, optimizer, boardSize, subfix="", ):
     path = f"model/checkpoint{subfix}.pth"
     torch.save({
-        'model_state_dict': network.state_dict(),
+        'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
     }, path)
 
-    torch.jit.save(torch.jit.script(network), "model/model_latest.pt")
+    torch.jit.save(torch.jit.script(model), "model/model_latest.pt")
 
     # 导出onnx
-    network.eval()
-    example = torch.randn(1, network.input_channels, boardSize, boardSize, requires_grad=True,
-                          device=next(network.parameters()).device)
-    torch.onnx.export(network,
+    model.eval()
+    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+                          device=next(model.parameters()).device)
+    torch.onnx.export(model,
                       (example),
                       'model/model_latest.onnx',
                       input_names=['input'],
@@ -135,38 +135,63 @@ def save_network(network, optimizer, boardSize, subfix="", ):
                       opset_version=17,
                       verbose=False)
 
-    example = torch.randn(1, network.input_channels, boardSize, boardSize, requires_grad=True,
-                          device=next(network.parameters()).device)
-    torch.onnx.export(network,
+    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+                          device=next(model.parameters()).device)
+    torch.onnx.export(model,
                       (example),
                       'model/model_latest_single_batch.onnx',
                       input_names=['input'],
                       output_names=['value', "act"],
                       opset_version=17,
                       verbose=False)
-    network.train()
+    model.train()
 
 
-#
-# lr = 1e-3
-# device = getDevice()
-# network, optimizer = get_network(device, lr)
-# save_network(network,optimizer)
+def evaluate_state(model, state):
+    ret = model(state)
+    return ret[0].item(), torch.exp(ret[1]).cpu().detach().numpy()
+
+
+def get_state(game):
+    limit = 8
+    tensor = torch.zeros(limit * 2, game.board_size, game.board_size, device=game.device)
+    k = 0
+    for board in game.history[-limit:][::-1]:
+        for x in range(game.board_size):
+            for y in range(game.board_size):
+                if board[x][y] == game.current_player:
+                    tensor[k, x, y] = 1
+                else:
+                    tensor[k, x, y] = 0
+        k = k + 1
+
+    k = limit
+    for board in game.history[-limit:][::-1]:
+        for x in range(game.board_size):
+            for y in range(game.board_size):
+                if board[x][y] == 3 - game.current_player:
+                    tensor[k, x, y] = 1
+                else:
+                    tensor[k, x, y] = 0
+        k = k + 1
+    return tensor
 
 
 if __name__ == "__main__":
     # 测试代码
-    network, optimizer = get_network(device=Utils.getDevice(), lr=0.01)
+    model, optimizer = get_model(device=Utils.getDevice(), lr=0.01)
     game = Game(9)
-    game.make_move(1,1)
-    game.make_move(2,2)
-    game.make_move(3,3)
-    print(game.history)
-    game.render()
-    tensor = game.get_state()
-    for i in range(16):
-        print(i)
-        print(tensor[i])
-    ret = network(tensor)
-    print(torch.exp(ret[1]))
-    print(ret[0].item())
+    game.make_move(1, 1)
+    game.make_move(2, 2)
+    game.make_move(3, 3)
+    # print(game.history)
+    # game.render()
+    # tensor = convert_game_to_state(game)
+    # for i in range(16):
+    #     print(i)
+    #     print(tensor[i])
+    # ret = network(tensor)
+    # print(torch.exp(ret[1]))
+    # print(ret[0].item())
+
+    print(evaluate_state(model, get_state(game)))

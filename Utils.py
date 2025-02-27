@@ -21,5 +21,5 @@ def getDevice():
     if hasattr(torch.backends, "mps"):
         if torch.backends.mps.is_available():
             device = "mps"
-    print(device)
+    # print(device)
     return device

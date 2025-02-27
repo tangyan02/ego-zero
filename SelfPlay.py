@@ -96,31 +96,36 @@
 #     }
 #     return training_data;
 # }
+import Utils
 from Game import Game
 from MCTS import Node, MCTS
 
 
 def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, explorationFactor, model):
     # 测试代码
-    game = Game(board_size=boardSize)
-    game.reset()
-    game.render()
-
-    node = Node(game=game)
-    mcts = MCTS(model=model, iterations=numSimulations)
-    mcts.root = node
 
     for i in range(numGames):
-        print(f"第 {i} 步")
+        # 测试代码
+        game = Game(board_size=boardSize, device=Utils.getDevice())
+        node = Node(game=game)
+        mcts = MCTS(model=model, iterations=numSimulations, exploration_constant=explorationFactor)
+        mcts.root = node
 
-        mcts.search(game)
-        best_child = max(mcts.root.children, key=lambda child: child.visits)
-        sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
-        moves = [(child.move, child.visits) for child in sorted_children]
-        print("可选落子", moves)
-        print("玩家 ", game.current_player, "落子 ", best_child.move, " 访问次数 ", best_child.visits)
-        game.make_move(best_child.move[0], best_child.move[1])
-        if game.end_game_check():
-            break
+        step = 0
+        while True:
+            step += 1
+            print(f"第 {step} 步")
+
+            mcts.search(game)
+            best_child = max(mcts.root.children, key=lambda child: child.visits)
+            sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
+            moves = [(child.move, child.visits) for child in sorted_children]
+            print("可选落子", moves)
+            print("玩家 ", game.current_player, "落子 ", best_child.move, " 访问次数 ", best_child.visits)
+            game.make_move(best_child.move[0], best_child.move[1])
+            if game.end_game_check():
+                break
+
+            game.render()
 
         game.render()
