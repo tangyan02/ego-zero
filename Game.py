@@ -3,6 +3,10 @@ from distutils.command.check import check
 import numpy as np
 import random
 
+import torch
+
+import Utils
+
 
 class Point:
     def __init__(self, x: int, y: int):
@@ -11,7 +15,7 @@ class Point:
 
 
 class Game:
-    def __init__(self, board_size=19):
+    def __init__(self, board_size=19, device=Utils.getDevice()):
         self.board_size = board_size
         self.board = np.zeros((board_size, board_size), dtype=int)
         self.current_player = 1
@@ -19,6 +23,7 @@ class Game:
         self.ko_point = None  # 用于记录劫的位置
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
         self.ko_history = []  # 记录劫的历史状态，用于处理单劫循环
+        self.device = device
 
     def parse(self, data):
         x, y = (0, 0)
@@ -258,7 +263,7 @@ class Game:
         corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
         for px, py in corner_list:
             if 0 <= px < self.board_size and 0 <= py < self.board_size and self.is_cross_eye(px, py, player, board):
-                p_opp_count, p_corner_blank_count, p_cross_blank_count = self.count_around(px, py , player, board)
+                p_opp_count, p_corner_blank_count, p_cross_blank_count = self.count_around(px, py, player, board)
                 if p_opp_count == 0 and p_cross_blank_count == 0 and p_corner_blank_count + corner_blank_count <= 3:
                     return True
         return False
@@ -335,7 +340,7 @@ class Game:
         print()
 
     def copy(self):
-        new_game = Game(board_size=self.board_size)
+        new_game = Game(board_size=self.board_size, device=self.device)
         new_game.board = self.board.copy()
         new_game.current_player = self.current_player
         new_game.history = [board.copy() for board in self.history]
@@ -343,6 +348,30 @@ class Game:
         new_game.pass_count = self.pass_count
         new_game.ko_history = self.ko_history.copy()
         return new_game
+
+    def get_state(self):
+        limit = 8
+        tensor = torch.zeros(limit * 2, self.board_size, self.board_size,device= self.device)
+        k = 0
+        for board in self.history[-limit:][::-1]:
+            for x in range(self.board_size):
+                for y in range(self.board_size):
+                    if board[x][y] == self.current_player:
+                        tensor[k, x, y] = 1
+                    else:
+                        tensor[k, x, y] = 0
+            k = k + 1
+
+        k = limit
+        for board in self.history[-limit:][::-1]:
+            for x in range(self.board_size):
+                for y in range(self.board_size):
+                    if board[x][y] == 3 - self.current_player:
+                        tensor[k, x, y] = 1
+                    else:
+                        tensor[k, x, y] = 0
+            k = k + 1
+        return tensor
 
 
 if __name__ == "__main__":

@@ -1,8 +1,12 @@
 import random
 from math import sqrt, log
 
+import Network
+import Utils
 from Game import Game
 from tqdm import tqdm
+
+from Network import get_network
 
 
 class Node:
@@ -55,9 +59,11 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, iterations=1000):
+    def __init__(self, model, iterations=1000, exploration_constant=1.414):
         self.root = None
         self.iterations = iterations
+        self.model = model
+        self.exploration_constant = exploration_constant
 
     def search(self, game):
         """
@@ -92,7 +98,6 @@ class MCTS:
                 if result == 3 - start_player:
                     return -1
 
-
     def simulate(self, game):
         if game.end_game_check():
             return
@@ -106,7 +111,7 @@ class MCTS:
         if game.end_game_check():
             value = -1
         else:
-            value = self.random_simulate(game)
+            value = model(game.get_state())[0].item()
             node.expand()
 
         node.update(value)
@@ -118,8 +123,12 @@ if __name__ == "__main__":
     game.reset()
     game.render()
 
+    lr = 1e-3
+    device = Utils.getDevice()
+
+    model, _ = Network.get_network(device, lr)
     node = Node(game=game)
-    mcts = MCTS(iterations=1000)
+    mcts = MCTS(iterations=1000, model=model)
     mcts.root = node
 
     for i in range(1000):
@@ -127,8 +136,10 @@ if __name__ == "__main__":
 
         mcts.search(game)
         best_child = max(mcts.root.children, key=lambda child: child.visits)
-        print("落子 ", best_child.move, " 访问次数 ", best_child.visits)
-
+        sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
+        moves = [(child.move, child.visits) for child in sorted_children]
+        print("可选落子", moves)
+        print("玩家 ", game.current_player, "落子 ", best_child.move, " 访问次数 ", best_child.visits)
         game.make_move(best_child.move[0], best_child.move[1])
         if game.end_game_check():
             break
