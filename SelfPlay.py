@@ -1,3 +1,13 @@
+# void addAction(Game &game,
+#                int action,
+#                std::vector<std::tuple<vector<vector<vector<float>>>, int, std::vector<float>>> &game_data,
+#                std::vector<float> &action_probs
+# ) {
+#     auto state = game.getState();
+#     std::tuple<vector<vector<vector<float>>>, int, std::vector<float>> record(state, game.currentPlayer, action_probs);
+#     game.makeMove(game.getPointFromIndex(action));
+#     game_data.push_back(record);
+# }
 # std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::vector<float>>> selfPlay(int boardSize,
 #                                                                                                         int numGames,
 #                                                                                                         int numSimulations,
@@ -96,36 +106,76 @@
 #     }
 #     return training_data;
 # }
+import numpy as np
+
+import Network
 import Utils
 from Game import Game
 from MCTS import Node, MCTS
 
 
 def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, explorationFactor, model):
-    # 测试代码
+    training_data = []
 
-    for i in range(numGames):
-        # 测试代码
+    for _ in range(numGames):
         game = Game(board_size=boardSize, device=Utils.getDevice())
-        node = Node(game=game)
+        root = Node()
         mcts = MCTS(model=model, iterations=numSimulations, exploration_constant=explorationFactor)
-        mcts.root = node
+        mcts.root = root
 
         step = 0
+
+        actions = []
         while True:
             step += 1
             print(f"第 {step} 步")
 
             mcts.search(game)
-            best_child = max(mcts.root.children, key=lambda child: child.visits)
-            sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
-            moves = [(child.move, child.visits) for child in sorted_children]
-            print("可选落子", moves)
-            print("玩家 ", game.current_player, "落子 ", best_child.move, " 访问次数 ", best_child.visits)
-            game.make_move(best_child.move[0], best_child.move[1])
+
+            # 步骤 1: 提取 visit 的数值
+            # 步骤 2: 归一化得到概率分布
+            # 步骤 3: 以这个分布的概率，随机取一个对象的索引
+
+            visit_values = np.array([obj.visits for obj in mcts.root.children])
+            values_sum = visit_values.sum()
+            probabilities = visit_values / values_sum
+            # print(visit_values)
+            # print(probabilities)
+            random_index = np.random.choice(len(mcts.root.children), p=probabilities)
+            node = mcts.root.children[random_index]
+
+            # 打印决策
+            probs_matrix = np.zeros((game.board_size, game.board_size))
+            for child in mcts.root.children:
+                if child.move[0] >= 0:
+                    probs_matrix[child.move[0]][child.move[1]] = child.visits / values_sum
+            print(probs_matrix)
+
+            actions.append((Network.get_state(game), game.current_player, probs_matrix))
+
+            print("玩家 ", game.current_player, "落子 ", node.move, " 访问次数 ", node.visits)
+            game.make_move(node.move[0], node.move[1])
+
+            # print(actions)
             if game.end_game_check():
                 break
 
             game.render()
 
         game.render()
+
+        winner = game.calculate_winner()
+        for (state, player, probs) in actions:
+            value = 0
+            if winner == player:
+                value = 1.0
+            if winner == 3 - player:
+                value = -1.0
+            training_data.append((state, probs, value))
+
+    return training_data
+
+
+if __name__ == "__main__":
+    model, _ = Network.get_model(Utils.getDevice(), 1e-3)
+    selfPlay(9, 1, 800, 1, 3, model)

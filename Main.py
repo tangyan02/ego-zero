@@ -3,6 +3,7 @@ import time
 import numpy as np
 import torch
 
+import SelfPlay
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
@@ -42,51 +43,48 @@ def update_count(k, filepath="model/count.txt"):
     return count
 
 
-dirPreBuild()
+if __name__ == "__main__":
+    dirPreBuild()
 
-lr = 1e-3
-batch_size = 64
-episode = 100000
+    board_size = 9
+    numSimulations = 800
+    temperatureDefault = 1
+    explorationFactor = 3
+    numGames = 10
 
-# 模型初始化
-device = getDevice()
-network, optimizer = get_model(device, lr)
+    lr = 1e-3
+    batch_size = 64
+    episode = 100000
 
-save_model(network, optimizer)
-network.to("cpu")
-torch.cuda.empty_cache()
+    # 模型初始化
+    device = getDevice()
+    model, optimizer = get_model(device, lr)
 
-for i_episode in range(1, episode + 1):
+    save_model(model, optimizer, batch_size)
 
-    start_time = time.time()
+    for i_episode in range(1, episode + 1):
 
-    training_data = callSelfPlayInCpp(shard_nums, part_nums, worker_nums, node_num)
+        start_time = time.time()
 
-    end_time = time.time()
-    print(getTimeStr() + f"自我对弈完毕，用时 {end_time - start_time} s")
+        training_data = SelfPlay.selfPlay(board_size, numGames, numSimulations,
+                                          temperatureDefault, explorationFactor, model)
 
-    extended_data = get_extended_data(training_data)
-    print(getTimeStr() + f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
-        round(len(extended_data) / (end_time - start_time), 1)) + " 条/s")
+        end_time = time.time()
+        print(getTimeStr() + f"自我对弈完毕，用时 {end_time - start_time} s")
 
-    # 网络移动到GPU中
-    network.to(device)
-    print(getTimeStr() + f"模型已移动到" + device)
+        extended_data = get_extended_data(training_data)
+        print(getTimeStr() + f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
+            round(len(extended_data) / (end_time - start_time), 1)) + " 条/s")
 
-    train(extended_data, network, device, optimizer, batch_size, i_episode)
+        train(extended_data, model, device, optimizer, batch_size, i_episode)
 
-    if i_episode % 100 == 0:
-        save_model(network, optimizer, f"_{i_episode}")
-    save_model(network, optimizer)
-    print(getTimeStr() + f"最新模型已保存 episode:{i_episode}")
+        if i_episode % 100 == 0:
+            save_model(model, optimizer, f"_{i_episode}")
+        save_model(model, optimizer)
+        print(getTimeStr() + f"最新模型已保存 episode:{i_episode}")
 
-    # 网络移动到CPU用，释放内存
-    memory_allocated = torch.cuda.memory_allocated()
-    network.to("cpu")
-    torch.cuda.empty_cache()
-    print(getTimeStr() + f"GPU内存已清理")
+        print(f"episode {i_episode} 完成")
 
-    print(f"episode {i_episode} 完成")
-    # 更新计数
-    # count = sum(shard_nums[i] * part_nums[i] for i in range(node_num))
-    # update_count(count)
+        # 更新计数
+        count = numGames
+        update_count(count)

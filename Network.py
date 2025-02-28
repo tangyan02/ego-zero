@@ -124,27 +124,27 @@ def save_model(model, optimizer, boardSize, subfix="", ):
     torch.jit.save(torch.jit.script(model), "model/model_latest.pt")
 
     # 导出onnx
-    model.eval()
-    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
-                          device=next(model.parameters()).device)
-    torch.onnx.export(model,
-                      (example),
-                      'model/model_latest.onnx',
-                      input_names=['input'],
-                      output_names=['value', "act"],
-                      opset_version=17,
-                      verbose=False)
-
-    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
-                          device=next(model.parameters()).device)
-    torch.onnx.export(model,
-                      (example),
-                      'model/model_latest_single_batch.onnx',
-                      input_names=['input'],
-                      output_names=['value', "act"],
-                      opset_version=17,
-                      verbose=False)
-    model.train()
+    # model.eval()
+    # example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+    #                       device=next(model.parameters()).device)
+    # torch.onnx.export(model,
+    #                   (example),
+    #                   'model/model_latest.onnx',
+    #                   input_names=['input'],
+    #                   output_names=['value', "act"],
+    #                   opset_version=17,
+    #                   verbose=False)
+    #
+    # example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+    #                       device=next(model.parameters()).device)
+    # torch.onnx.export(model,
+    #                   (example),
+    #                   'model/model_latest_single_batch.onnx',
+    #                   input_names=['input'],
+    #                   output_names=['value', "act"],
+    #                   opset_version=17,
+    #                   verbose=False)
+    # model.train()
 
 
 def evaluate_state(model, state):
