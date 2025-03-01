@@ -76,42 +76,20 @@ class MCTS:
 
         bar.close()
 
-    def random_simulate(self, game):
-        start_player = game.current_player
-        while True:
-            moves = game.get_all_valid_moves_include_pass()
-            # print("moves", moves)
-            move = random.choice(moves)
-            # print('move ', move)
-            game.make_move(move[0], move[1])
-            # game.render()
-
-            if game.end_game_check():
-                result = game.calculate_winner()
-                if result == 0:
-                    return 0
-                if result == start_player:
-                    return 1
-                if result == 3 - start_player:
-                    return -1
-
     def simulate(self, game):
-        if game.end_game_check():
-            return
-
         node = self.root
         while not node.is_leaf():
             result = node.select_child(self.exploration_constant)
             game.make_move(result.move[0], result.move[1])
             node = result
 
+        value = 0
         if game.end_game_check():
             winner = game.calculate_winner()
             if winner == game.current_player:
-                return 1
+                value =  1
             if winner == 3 - game.current_player:
-                return -1
-            return 0
+                value =  -1
         else:
             value, probs = Network.evaluate_state(self.model, Network.get_state(game))
             valid_moves = game.get_all_valid_moves_include_pass()

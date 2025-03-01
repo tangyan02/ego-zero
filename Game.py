@@ -1,11 +1,10 @@
-from distutils.command.check import check
+import random
+from time import sleep
 
 import numpy as np
-import random
-
-import torch
 
 import Utils
+from GameUI import GameUI
 
 
 class Point:
@@ -24,6 +23,7 @@ class Game:
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
         self.ko_history = []  # 记录劫的历史状态，用于处理单劫循环
         self.device = device
+
 
     def parse(self, data):
         x, y = (0, 0)
@@ -204,9 +204,9 @@ class Game:
         for x in range(self.board_size):
             for y in range(self.board_size):
                 if self.board[x, y] == 0:
-                    if self.is_eye(x, y, 1):
+                    if self.is_cross_eye(x, y, 1):
                         black_territory += 1
-                    elif self.is_eye(x, y, 2):
+                    elif self.is_cross_eye(x, y, 2):
                         white_territory += 1
 
         black_score = black_stones + black_territory
@@ -355,17 +355,20 @@ if __name__ == "__main__":
     game = Game(board_size=9)
     game.reset()
     game.render()
+    gameUi = GameUI(board_size=9)
 
     for i in range(1000):
         print(f"第 {i} 步")
-
+        sleep(1)
         if not game.make_random_move():
             game.pass_move()
 
         if game.end_game_check():
             game.render()
+            gameUi.render(game.board)
             break
 
         game.render()
+        gameUi.render(game.board)
 
     game.calculate_scores()

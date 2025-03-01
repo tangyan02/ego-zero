@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 import SelfPlay
+from GameUI import GameUI
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     dirPreBuild()
 
     board_size = 9
-    numSimulations = 800
+    numSimulations = 200
     temperatureDefault = 1
     explorationFactor = 3
     numGames = 10
@@ -59,6 +60,8 @@ if __name__ == "__main__":
     # 模型初始化
     device = getDevice()
     model, optimizer = get_model(device, lr)
+    game_ui = GameUI(board_size)
+    ui_enable = True
 
     save_model(model, optimizer, batch_size)
 
@@ -67,7 +70,8 @@ if __name__ == "__main__":
         start_time = time.time()
 
         training_data = SelfPlay.selfPlay(board_size, numGames, numSimulations,
-                                          temperatureDefault, explorationFactor, model)
+                                          temperatureDefault, explorationFactor, model,
+                                          ui_enable, game_ui)
 
         end_time = time.time()
         print(getTimeStr() + f"自我对弈完毕，用时 {end_time - start_time} s")
@@ -79,8 +83,8 @@ if __name__ == "__main__":
         train(extended_data, model, device, optimizer, batch_size, i_episode)
 
         if i_episode % 100 == 0:
-            save_model(model, optimizer, f"_{i_episode}")
-        save_model(model, optimizer)
+            save_model(model, optimizer, board_size, f"_{i_episode}")
+        save_model(model, optimizer, board_size)
         print(getTimeStr() + f"最新模型已保存 episode:{i_episode}")
 
         print(f"episode {i_episode} 完成")

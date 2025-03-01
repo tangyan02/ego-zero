@@ -114,10 +114,11 @@ from Game import Game
 from MCTS import Node, MCTS
 
 
-def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, explorationFactor, model):
+def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, explorationFactor, model,
+             ui_enable=False, game_ui=None):
     training_data = []
 
-    for _ in range(numGames):
+    for i_numGames in range(numGames):
         game = Game(board_size=boardSize, device=Utils.getDevice())
         root = Node()
         mcts = MCTS(model=model, iterations=numSimulations, exploration_constant=explorationFactor)
@@ -128,7 +129,7 @@ def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, exploratio
         actions = []
         while True:
             step += 1
-            print(f"第 {step} 步")
+            print(f"第 {i_numGames} 局，第 {step} 步")
 
             mcts.search(game)
 
@@ -137,8 +138,10 @@ def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, exploratio
             # 步骤 3: 以这个分布的概率，随机取一个对象的索引
 
             visit_values = np.array([obj.visits for obj in mcts.root.children])
-            values_sum = visit_values.sum()
-            probabilities = visit_values / values_sum
+            visit_sum = visit_values.sum()
+
+            probabilities = visit_values / visit_sum
+
             # print(visit_values)
             # print(probabilities)
             random_index = np.random.choice(len(mcts.root.children), p=probabilities)
@@ -148,21 +151,24 @@ def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, exploratio
             probs_matrix = np.zeros((game.board_size, game.board_size))
             for child in mcts.root.children:
                 if child.move[0] >= 0:
-                    probs_matrix[child.move[0]][child.move[1]] = child.visits / values_sum
-            print(probs_matrix)
+                    probs_matrix[child.move[0]][child.move[1]] = child.visits / visit_sum
+            # print(probs_matrix)
 
-            actions.append((Network.get_state(game), game.current_player, probs_matrix))
+            actions.append((Network.get_state(game).cpu(), game.current_player, probs_matrix))
 
             print("玩家 ", game.current_player, "落子 ", node.move, " 访问次数 ", node.visits)
             game.make_move(node.move[0], node.move[1])
 
-            # print(actions)
             if game.end_game_check():
                 break
-
+            # print(actions)
             game.render()
+            if ui_enable is True:
+                game_ui.render(game.board)
 
         game.render()
+        if ui_enable is True:
+            game_ui.render(game.board)
 
         winner = game.calculate_winner()
         for (state, player, probs) in actions:
