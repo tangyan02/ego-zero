@@ -19,7 +19,7 @@ class GameUI:
         # 初始化 pygame
         pygame.init()
         # 计算窗口大小
-        self.window_size = 600
+        self.window_size = 800
         self.cell_size = self.window_size // self.board_size
         # 创建窗口
         self.screen = pygame.display.set_mode((self.window_size, self.window_size))
@@ -52,18 +52,26 @@ class GameUI:
             pygame.draw.line(self.screen, LINE_COLOR, (offset_x, start_y),
                              (offset_x + (self.board_size - 1) * self.cell_size, start_y), 2)
 
+        # 如果是9路棋盘，绘制特定小黑点
+        if self.board_size == 9:
+            dot_coordinates = [(2, 2), (2, 6), (6, 2), (6, 6), (4, 4)]
+            for x, y in dot_coordinates:
+                dot_x = offset_x + x * self.cell_size
+                dot_y = offset_y + y * self.cell_size
+                pygame.draw.circle(self.screen, BLACK_STONE_COLOR, (dot_x, dot_y), 7)
+
         # 绘制棋子
         for i in range(self.board_size):
             for j in range(self.board_size):
                 if board[i][j] == 1:  # 黑子
                     # 调整坐标到网格交叉点
-                    x = offset_x + i * self.cell_size
-                    y = offset_y + j * self.cell_size
+                    y = offset_x + i * self.cell_size
+                    x = offset_y + j * self.cell_size
                     pygame.draw.circle(self.screen, BLACK_STONE_COLOR, (x, y), self.cell_size // 2 - 2)
                 elif board[i][j] == 2:  # 白子
                     # 调整坐标到网格交叉点
-                    x = offset_x + i * self.cell_size
-                    y = offset_y + j * self.cell_size
+                    y = offset_x + i * self.cell_size
+                    x = offset_y + j * self.cell_size
                     pygame.draw.circle(self.screen, WHITE_STONE_COLOR, (x, y), self.cell_size // 2 - 2)
 
         # 绘制状态栏背景

@@ -114,12 +114,12 @@ from Game import Game
 from MCTS import Node, MCTS
 
 
-def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, explorationFactor, model,
+def selfPlay(boardSize, tie_mu, numGames, numSimulations, temperatureDefault, explorationFactor, model,
              ui_enable=False, game_ui=None):
     training_data = []
 
     for i_numGames in range(numGames):
-        game = Game(board_size=boardSize, device=Utils.getDevice())
+        game = Game(board_size=boardSize, device=Utils.getDevice(), tie_mu=tie_mu)
         root = Node()
         mcts = MCTS(model=model, iterations=numSimulations, exploration_constant=explorationFactor)
         mcts.root = root
@@ -165,7 +165,7 @@ def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, exploratio
             game.render()
             if ui_enable is True:
                 game_ui.render(game.board,
-                               f"第 {i_numGames} 局，第 {step} 步， 玩家 {game.current_player} 落子 {node.move}  访问次数 {node.visits}")
+                               f"第 {i_numGames} 局，第 {step} 步， 玩家 {3 - game.current_player} 落子 {node.move}  访问次数 {node.visits}")
 
         game.render()
         if ui_enable is True:

@@ -48,6 +48,7 @@ if __name__ == "__main__":
     dirPreBuild()
 
     board_size = 9
+    tie_mu = 3
     numSimulations = 200
     temperatureDefault = 1
     explorationFactor = 3
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        training_data = SelfPlay.selfPlay(board_size, numGames, numSimulations,
+        training_data = SelfPlay.selfPlay(board_size, tie_mu, numGames, numSimulations,
                                           temperatureDefault, explorationFactor, model,
                                           ui_enable, game_ui)
 

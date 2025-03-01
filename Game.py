@@ -14,7 +14,7 @@ class Point:
 
 
 class Game:
-    def __init__(self, board_size=19, device=Utils.getDevice(), tie_mu=7.5):
+    def __init__(self, board_size=19, device=Utils.getDevice(), tie_mu=6.5):
         self.board_size = board_size
         self.board = np.zeros((board_size, board_size), dtype=int)
         self.current_player = 1
