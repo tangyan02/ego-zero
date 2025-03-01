@@ -39,7 +39,7 @@ class ResidualBlock(nn.Module):
 class PolicyValueNetwork(nn.Module):
     def __init__(self):
         self.board_size = 9
-        self.input_channels = 16
+        self.input_channels = 17
         self.residual_channels = 128
         super(PolicyValueNetwork, self).__init__()
 
@@ -154,7 +154,7 @@ def evaluate_state(model, state):
 
 def get_state(game):
     limit = 8
-    tensor = torch.zeros(limit * 2, game.board_size, game.board_size, device=game.device)
+    tensor = torch.zeros(limit * 2 + 1, game.board_size, game.board_size, device=game.device)
     k = 0
     for board in game.history[-limit:][::-1]:
         for x in range(game.board_size):
@@ -174,6 +174,12 @@ def get_state(game):
                 else:
                     tensor[k, x, y] = 0
         k = k + 1
+    # 判断自己是先还是后
+    if game.current_player == 1:
+        for x in range(game.board_size):
+            for y in range(game.board_size):
+                tensor[k, x, y] = 1
+
     return tensor
 
 

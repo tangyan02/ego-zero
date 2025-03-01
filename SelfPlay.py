@@ -164,7 +164,8 @@ def selfPlay(boardSize, numGames, numSimulations, temperatureDefault, exploratio
             # print(actions)
             game.render()
             if ui_enable is True:
-                game_ui.render(game.board)
+                game_ui.render(game.board,
+                               f"第 {i_numGames} 局，第 {step} 步， 玩家 {game.current_player} 落子 {node.move}  访问次数 {node.visits}")
 
         game.render()
         if ui_enable is True:

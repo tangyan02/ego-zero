@@ -14,7 +14,7 @@ class Point:
 
 
 class Game:
-    def __init__(self, board_size=19, device=Utils.getDevice()):
+    def __init__(self, board_size=19, device=Utils.getDevice(), tie_mu=7.5):
         self.board_size = board_size
         self.board = np.zeros((board_size, board_size), dtype=int)
         self.current_player = 1
@@ -23,7 +23,7 @@ class Game:
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
         self.ko_history = []  # 记录劫的历史状态，用于处理单劫循环
         self.device = device
-
+        self.tie_mu = tie_mu
 
     def parse(self, data):
         x, y = (0, 0)
@@ -210,7 +210,7 @@ class Game:
                         white_territory += 1
 
         black_score = black_stones + black_territory
-        white_score = white_stones + white_territory
+        white_score = white_stones + white_territory + self.tie_mu
 
         # 添加调试信息
         # print(f"黑方棋子数: {black_stones}，领地数: {black_territory}，总分: {black_score}")
@@ -340,7 +340,7 @@ class Game:
         print()
 
     def copy(self):
-        new_game = Game(board_size=self.board_size, device=self.device)
+        new_game = Game(board_size=self.board_size, device=self.device, tie_mu=self.tie_mu)
         new_game.board = self.board.copy()
         new_game.current_player = self.current_player
         new_game.history = [board.copy() for board in self.history]
@@ -365,10 +365,10 @@ if __name__ == "__main__":
 
         if game.end_game_check():
             game.render()
-            gameUi.render(game.board)
+            gameUi.render(game.board, "测试")
             break
 
         game.render()
-        gameUi.render(game.board)
+        gameUi.render(game.board, "测试")
 
     game.calculate_scores()
