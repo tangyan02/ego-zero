@@ -91,7 +91,7 @@ class MCTS:
             if winner == 3 - game.current_player:
                 value =  -1
         else:
-            value, probs = Network.evaluate_state(self.model, Network.get_state(game))
+            value, probs = Network.evaluate_state_onnx(self.model, Network.get_state(game))
             valid_moves = game.get_all_valid_moves_include_pass()
             probs_arr = []
             if len(valid_moves) > 1:

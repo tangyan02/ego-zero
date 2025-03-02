@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,6 +8,7 @@ from torch import optim
 
 import Utils
 from Game import Game
+import onnxruntime as ort
 
 
 # 定义一个Residual block
@@ -124,27 +126,18 @@ def save_model(model, optimizer, boardSize, subfix="", ):
     torch.jit.save(torch.jit.script(model), "model/model_latest.pt")
 
     # 导出onnx
-    # model.eval()
-    # example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
-    #                       device=next(model.parameters()).device)
-    # torch.onnx.export(model,
-    #                   (example),
-    #                   'model/model_latest.onnx',
-    #                   input_names=['input'],
-    #                   output_names=['value', "act"],
-    #                   opset_version=17,
-    #                   verbose=False)
-    #
-    # example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
-    #                       device=next(model.parameters()).device)
-    # torch.onnx.export(model,
-    #                   (example),
-    #                   'model/model_latest_single_batch.onnx',
-    #                   input_names=['input'],
-    #                   output_names=['value', "act"],
-    #                   opset_version=17,
-    #                   verbose=False)
-    # model.train()
+    model.eval()
+    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+                          device=next(model.parameters()).device)
+    torch.onnx.export(model,
+                      (example),
+                      'model/model_latest.onnx',
+                      input_names=['input'],
+                      output_names=['value', "act"],
+                      opset_version=17,
+                      verbose=False)
+
+    model.train()
 
 
 def evaluate_state(model, state):
@@ -154,7 +147,7 @@ def evaluate_state(model, state):
 
 def get_state(game):
     limit = 8
-    tensor = torch.zeros(limit * 2 + 1, game.board_size, game.board_size, device=game.device)
+    tensor = torch.zeros(limit * 2 + 1, game.board_size, game.board_size, device="cpu")
     k = 0
     for board in game.history[-limit:][::-1]:
         for x in range(game.board_size):
@@ -183,21 +176,53 @@ def get_state(game):
     return tensor
 
 
+def load_onnx_model(model_path):
+    """
+    加载 ONNX 模型
+    :param model_path: ONNX 模型的路径
+    :return: ONNX 运行时的会话
+    """
+    # 尝试优先使用GPU，如果没有GPU则使用CPU
+    providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+    session = ort.InferenceSession(model_path, providers=providers)
+    # 查看实际使用的执行提供程序
+    print("当前使用的执行提供程序:", session.get_providers())
+    return session
+
+
+def evaluate_state_onnx(onnx_model, input_tensor):
+    """
+    使用 ONNX 模型进行推理
+    :param session: ONNX 运行时的会话
+    :param input_tensor: 输入的张量
+    :return: 推理结果
+    """
+    # 获取输入名称
+    input_name = onnx_model.get_inputs()[0].name
+    if input_tensor.dim() == 3:
+        input_tensor = input_tensor.unsqueeze(0)
+    # 进行推理
+    outputs = onnx_model.run(None, {input_name: input_tensor.cpu().numpy()})
+    value, probs = outputs
+    probs = np.exp(probs)
+    return value, probs
+
+
 if __name__ == "__main__":
     # 测试代码
+    board_size = 9
+
     model, optimizer = get_model(device=Utils.getDevice(), lr=0.01)
-    game = Game(9)
+    save_model(model, optimizer, board_size)
+    game = Game(board_size)
     game.make_move(1, 1)
     game.make_move(2, 2)
     game.make_move(3, 3)
-    # print(game.history)
-    # game.render()
-    # tensor = convert_game_to_state(game)
-    # for i in range(16):
-    #     print(i)
-    #     print(tensor[i])
-    # ret = network(tensor)
-    # print(torch.exp(ret[1]))
-    # print(ret[0].item())
 
-    print(evaluate_state(model, get_state(game)))
+    # 加载 ONNX 模型
+    onnx_session = load_onnx_model('model/model_latest.onnx')
+    # 获取输入状态
+    state = get_state(game)
+    # 进行 ONNX 推理
+    onnx_outputs = evaluate_state_onnx(onnx_session, state)
+    print("ONNX 推理结果:", onnx_outputs)

@@ -64,14 +64,14 @@ if __name__ == "__main__":
     game_ui = GameUI(board_size)
     ui_enable = True
 
-    save_model(model, optimizer, batch_size)
+    save_model(model, optimizer, board_size)
 
     for i_episode in range(1, episode + 1):
 
         start_time = time.time()
 
         training_data = SelfPlay.selfPlay(board_size, tie_mu, numGames, numSimulations,
-                                          temperatureDefault, explorationFactor, model,
+                                          temperatureDefault, explorationFactor,
                                           ui_enable, game_ui)
 
         end_time = time.time()

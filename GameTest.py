@@ -40,6 +40,19 @@ def test_is_eye_pair():
     assert game.is_eye_pair(1, 1, 1, game.board)
     assert game.is_eye_pair(2, 2, 1, game.board)
 
+    game = Game(board_size=6)
+    game.board = np.array([
+        [1, 1, 1, 0, 0, 0],
+        [1, 0, 1, 0, 0, 0],
+        [1, 1, 0, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 0, 1]
+    ])
+    assert not game.is_eye_pair(4, 5, 1, game.board)
+    assert not game.is_eye_pair(5, 4, 1, game.board)
+
+
 
 def test_is_eye():
     game = Game(board_size=6)
@@ -68,7 +81,20 @@ def test_is_eye():
     assert game.is_eye(0, 0, 1, game.board)
     assert game.is_eye(0, 2, 1, game.board)
     assert game.is_eye(4, 4, 1, game.board)
-    print("落子有效性测试通过")
+
+    game = Game(board_size=6)
+    game.board = np.array([
+        [0, 1, 0, 1, 0, 1],
+        [1, 0, 0, 1, 1, 0],
+        [1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1],
+        [0, 0, 0, 1, 1, 1]
+    ])
+    assert not game.is_eye(0, 0, 1, game.board)
+    assert not game.is_eye(0, 4, 1, game.board)
+
+    print("test_is_eye测试通过")
 
 
 # 测试落子操作
@@ -103,7 +129,7 @@ def test_calculate_scores():
     # 根据手动设置的棋盘状态计算预期得分
     # 这里只计算棋子数
     expected_black_score = np.sum(game.board == 1)
-    expected_white_score = np.sum(game.board == 2)
+    expected_white_score = np.sum(game.board == 2) + game.tie_mu
     assert black_score == expected_black_score
     assert white_score == expected_white_score
     print("得分计算测试通过")

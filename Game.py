@@ -248,23 +248,25 @@ class Game:
         x . x x
         x x . x
         . x x x
+        暂不考虑边的情况
         """
         if board is None:
             board = self.board
 
-        if not self.is_cross_eye(x, y, player, board):
+        if self.is_on_side(x,y):
             return False
-
-        opp_count, corner_blank_count, cross_blank_count = self.count_around(x, y, player, board)
-        if opp_count > 0 or cross_blank_count > 0 or corner_blank_count > 2:
+        corner_not_self_count, cross_not_self_count = self.count_around(x, y, player, board)
+        if cross_not_self_count > 0 or corner_not_self_count > 2:
             return False
 
         # 对角
         corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
         for px, py in corner_list:
+            if self.is_on_side(px, py):
+                continue
             if 0 <= px < self.board_size and 0 <= py < self.board_size and self.is_cross_eye(px, py, player, board):
-                p_opp_count, p_corner_blank_count, p_cross_blank_count = self.count_around(px, py, player, board)
-                if p_opp_count == 0 and p_cross_blank_count == 0 and p_corner_blank_count + corner_blank_count <= 3:
+                p_corner_not_self_count, p_cross_not_self_count = self.count_around(px, py, player, board)
+                if p_cross_not_self_count == 0 and p_corner_not_self_count + corner_not_self_count <= 3:
                     return True
         return False
 
@@ -275,29 +277,28 @@ class Game:
         if board is None:
             board = self.board
 
-        opp_count = 0
-        corner_blank_count = 0
-        cross_blank_count = 0
-
         # 相邻
         cross_list = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-        # 对角
-        corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
+        cross_not_self_count = 0
+
         for px, py in cross_list:
             if 0 <= px < self.board_size and 0 <= py < self.board_size:
-                if board[px][py] == 3 - player:
-                    opp_count += 1
-                if board[px][py] == 0:
-                    cross_blank_count += 1
+                if board[px][py] != player:
+                    cross_not_self_count += 1
 
+        # 对角
+        corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
+        corner_not_self_count = 0
         for px, py in corner_list:
             if 0 <= px < self.board_size and 0 <= py < self.board_size:
-                if board[px][py] == 3 - player:
-                    opp_count += 1
-                if board[px][py] == 0:
-                    corner_blank_count += 1
+                if board[px][py] != player:
+                    corner_not_self_count += 1
 
-        return opp_count, corner_blank_count, cross_blank_count
+        return corner_not_self_count, cross_not_self_count
+
+    def is_on_side(self, x, y):
+        if x == 0 or y == 0 or x == self.board_size - 1 or y == self.board_size - 1:
+            return True
 
     def is_cross_eye(self, x, y, player, board=None):
         """
@@ -325,8 +326,11 @@ class Game:
         if board[x, y] != 0:
             return False
 
-        opp_count, corner_blank_count, cross_blank_count = self.count_around(x, y, player, board)
-        if cross_blank_count == 0 and opp_count == 0 and cross_blank_count <= 1:
+        corner_not_self_count, cross_not_self_count = self.count_around(x, y, player, board)
+        corner_limit = 1
+        if self.is_on_side(x, y):
+            corner_limit = 0
+        if cross_not_self_count == 0 and corner_not_self_count <= corner_limit:
             return True
 
         if self.is_eye_pair(x, y, player, board):
