@@ -209,7 +209,7 @@ class Game:
                     elif self.is_cross_eye(x, y, 2):
                         white_territory += 1
 
-        black_score = black_stones + black_territory
+        black_score = black_stones + black_territory - self.tie_mu
         white_score = white_stones + white_territory + self.tie_mu
 
         # 添加调试信息
@@ -248,25 +248,26 @@ class Game:
         x . x x
         x x . x
         . x x x
-        暂不考虑边的情况
         """
         if board is None:
             board = self.board
 
-        if self.is_on_side(x,y):
-            return False
+        self_corner_count_limit = 2
+        if self.is_on_side(x, y):
+            self_corner_count_limit = 1
         corner_not_self_count, cross_not_self_count = self.count_around(x, y, player, board)
-        if cross_not_self_count > 0 or corner_not_self_count > 2:
+        if cross_not_self_count > 0 or corner_not_self_count > self_corner_count_limit:
             return False
 
         # 对角
         corner_list = [(x + 1, y + 1), (x + 1, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
         for px, py in corner_list:
-            if self.is_on_side(px, py):
-                continue
+            p_self_corner_count_limit = 3
+            if self.is_on_side(px, py) and self.is_on_side(x, y):
+                p_self_corner_count_limit = 2
             if 0 <= px < self.board_size and 0 <= py < self.board_size and self.is_cross_eye(px, py, player, board):
                 p_corner_not_self_count, p_cross_not_self_count = self.count_around(px, py, player, board)
-                if p_cross_not_self_count == 0 and p_corner_not_self_count + corner_not_self_count <= 3:
+                if p_cross_not_self_count == 0 and p_corner_not_self_count + corner_not_self_count <= p_self_corner_count_limit:
                     return True
         return False
 

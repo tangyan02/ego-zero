@@ -219,10 +219,15 @@ if __name__ == "__main__":
     game.make_move(2, 2)
     game.make_move(3, 3)
 
+
     # 加载 ONNX 模型
     onnx_session = load_onnx_model('model/model_latest.onnx')
     # 获取输入状态
-    state = get_state(game)
+    state = get_state(game).cuda()
     # 进行 ONNX 推理
     onnx_outputs = evaluate_state_onnx(onnx_session, state)
     print("ONNX 推理结果:", onnx_outputs)
+
+    predicted_values, predicted_action_logits = model(state)
+    print("predicted_values, predicted_action_logits shape", predicted_values.shape, predicted_action_logits.shape)
+    print(predicted_values, predicted_action_logits)

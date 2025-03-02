@@ -48,15 +48,16 @@ if __name__ == "__main__":
     dirPreBuild()
 
     board_size = 9
-    tie_mu = 3
+    tie_mu = 3.25
     numSimulations = 200
     temperatureDefault = 1
-    explorationFactor = 3
-    numGames = 10
+    explorationFactor = 5
+    numGames = 5
 
     lr = 1e-3
     batch_size = 64
     episode = 100000
+    total_games_count = update_count(0)
 
     # 模型初始化
     device = getDevice()
@@ -70,7 +71,7 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        training_data = SelfPlay.selfPlay(board_size, tie_mu, numGames, numSimulations,
+        training_data = SelfPlay.selfPlay(board_size, tie_mu, numGames, total_games_count, numSimulations,
                                           temperatureDefault, explorationFactor,
                                           ui_enable, game_ui)
 
@@ -92,4 +93,4 @@ if __name__ == "__main__":
 
         # 更新计数
         count = numGames
-        update_count(count)
+        total_games_count = update_count(count)

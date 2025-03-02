@@ -53,6 +53,19 @@ def test_is_eye_pair():
     assert not game.is_eye_pair(5, 4, 1, game.board)
 
 
+    game = Game(board_size=6)
+    game.board = np.array([
+        [0, 1, 0, 1, 0, 1],
+        [1, 0, 1, 1, 1, 0],
+        [1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1],
+        [0, 0, 0, 1, 1, 1]
+    ])
+    assert game.is_eye_pair(0, 0, 1, game.board)
+    assert game.is_eye_pair(1, 1, 1, game.board)
+
+
 
 def test_is_eye():
     game = Game(board_size=6)

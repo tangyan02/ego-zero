@@ -101,6 +101,7 @@ class MCTS:
             else:
                 probs_arr.append(1)
 
+            value = value[0][0]
             node.expand(valid_moves, probs_arr)
 
         node.update(value)

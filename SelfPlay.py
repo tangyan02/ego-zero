@@ -1,12 +1,15 @@
 import numpy as np
+from torch.utils.data import DataLoader
 
 import Network
 import Utils
 from Game import Game
 from MCTS import Node, MCTS
+from SampleSet import SampleSet
 
 
-def selfPlay(boardSize, tie_mu, numGames, numSimulations, temperatureDefault, explorationFactor,
+def selfPlay(boardSize, tie_mu, numGames, total_games_count,
+             numSimulations, temperatureDefault, explorationFactor,
              ui_enable=False, game_ui=None):
     onnx_model = Network.load_onnx_model("model/model_latest.onnx")
 
@@ -59,13 +62,15 @@ def selfPlay(boardSize, tie_mu, numGames, numSimulations, temperatureDefault, ex
             game.render()
             if ui_enable is True:
                 game_ui.render(game.board,
-                               f"第 {i_numGames} 局，第 {step} 步， 玩家 {3 - game.current_player} 落子 {node.move}  访问次数 {node.visits}")
+                               f"总局数 {total_games_count}， 第 {i_numGames} 局，第 {step} 步， 玩家 {3 - game.current_player} 落子 {node.move}  访问次数 {node.visits}")
+
+        winner = game.calculate_winner()
+        print(f"本局胜方 玩家 {winner}")
 
         game.render()
         if ui_enable is True:
-            game_ui.render(game.board)
+            game_ui.render(game.board, f"本局胜方 玩家 {winner}")
 
-        winner = game.calculate_winner()
         for (state, player, probs) in actions:
             value = 0
             if winner == player:
@@ -80,4 +85,15 @@ def selfPlay(boardSize, tie_mu, numGames, numSimulations, temperatureDefault, ex
 
 if __name__ == "__main__":
     model, _ = Network.get_model(Utils.getDevice(), 1e-3)
-    selfPlay(9, 3, 1, 800, 1, 3)
+    training_data = selfPlay(9, 3, 1,0, 10, 1, 3)
+    print(training_data)
+    sample_set = SampleSet(training_data)
+    dataloader = DataLoader(sample_set, batch_size=32, shuffle=True)
+    # 训练循环
+    running_loss = 0.0
+    for batch_data in dataloader:
+        states = batch_data[0].float().to(Utils.getDevice())
+        mcts_probs = batch_data[1].float().to(Utils.getDevice())
+        values = batch_data[2].float().to(Utils.getDevice())
+        values = values.unsqueeze(dim=0)
+        print(values.shape)

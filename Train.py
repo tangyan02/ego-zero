@@ -25,6 +25,10 @@ def train(extended_data, network, device, optimizer, batch_size, i_episode):
         # 前向传播
         predicted_values, predicted_action_logits = network(states)
 
+        # 对其values的形状
+        if predicted_values.dim() > values.dim():
+            values = values.unsqueeze(1)
+
         # 计算值和策略的损失
         value_loss = criterion(predicted_values, values)
 
