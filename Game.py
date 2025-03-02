@@ -97,6 +97,7 @@ class Game:
     def make_move(self, x, y):
         if x == -1 and y == -1:
             self.pass_move()
+            self.history.append(self.board.copy())
             return True
 
         # if not self.is_valid_move(x, y):
