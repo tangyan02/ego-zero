@@ -214,11 +214,19 @@ if __name__ == "__main__":
 
     model, optimizer = get_model(device=Utils.getDevice(), lr=0.01)
     save_model(model, optimizer, board_size)
+    data = """
+    x x x x o x o o .
+    . x . x o . o . o
+    x x x x o o o o .
+    x . o . . o . o o
+    x . x . o o x o o
+    . x . . . o o . o
+    . . . . x o . o x
+    . x . . . . . . x
+    . . . . . . x x x
+    """
     game = Game(board_size)
-    game.make_move(1, 1)
-    game.make_move(2, 2)
-    game.make_move(3, 3)
-
+    game.parse(data)
 
     # 加载 ONNX 模型
     onnx_session = load_onnx_model('model/model_latest.onnx')
@@ -228,6 +236,9 @@ if __name__ == "__main__":
     onnx_outputs = evaluate_state_onnx(onnx_session, state)
     print("ONNX 推理结果:", onnx_outputs)
 
-    predicted_values, predicted_action_logits = model(state)
-    print("predicted_values, predicted_action_logits shape", predicted_values.shape, predicted_action_logits.shape)
-    print(predicted_values, predicted_action_logits)
+    prob = onnx_outputs[1].reshape(9, 9)
+    print(prob)
+
+    # predicted_values, predicted_action_logits = model(state)
+    # print("predicted_values, predicted_action_logits shape", predicted_values.shape, predicted_action_logits.shape)
+    # print(predicted_values, predicted_action_logits)

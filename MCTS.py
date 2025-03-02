@@ -104,7 +104,7 @@ class MCTS:
             value = value[0][0]
             node.expand(valid_moves, probs_arr)
 
-        node.update(value)
+        node.update(-value)
 
 
 if __name__ == "__main__":
