@@ -34,8 +34,7 @@ class Node:
             q = 0
             if child.visits > 0:
                 q = child.value / child.visits
-            return q + exploration_constant * child.prob * sqrt(
-                log(self.visits) / (1 + child.visits))
+            return q + exploration_constant * child.prob * sqrt(self.visits) / (1 + child.visits)
 
         return max(self.children, key=uct)
 
