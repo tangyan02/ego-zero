@@ -12,7 +12,6 @@ TEXT_COLOR = (0, 0, 0)  # 文字颜色
 
 class GameUI:
 
-
     def __init__(self, board_size):
         self.board_size = board_size
 
@@ -33,9 +32,12 @@ class GameUI:
         except FileNotFoundError:
             # 如果找不到字体文件，使用默认字体
             self.font = pygame.font.Font(None, 20)
+
+        self.next_move = None
+
         pygame.display.set_caption("围棋棋盘")
 
-    def render_task(self, board, info_text = ""):
+    def render_task(self, board, info_text=""):
         # 填充背景色
         self.screen.fill(BOARD_COLOR)
 
@@ -86,7 +88,26 @@ class GameUI:
         pygame.display.flip()
 
     def render(self, board, text=""):
-        for event in pygame.event.get():  # pygame 推出
+        for event in pygame.event.get():  # pygame 退出
             if event.type == pygame.QUIT:
                 return
-        threading.Thread(target=self.render_task, args=(board,text)).start()
+            # 处理鼠标点击事件
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # 获取鼠标点击的位置
+                mouse_x, mouse_y = event.pos
+                # 计算偏移量，使棋盘从中间开始
+                offset_x = (self.window_size - (self.board_size - 1) * self.cell_size) // 2
+                offset_y = (self.window_size - (self.board_size - 1) * self.cell_size) // 2
+                # 判断点击位置是否在棋盘范围内
+                if offset_x <= mouse_x <= offset_x + (self.board_size - 1) * self.cell_size and offset_y <= mouse_y <= offset_y + (
+                        self.board_size - 1) * self.cell_size:
+                    # 计算点击的格子坐标
+                    # 找到离点击位置最近的网格交叉点
+                    x = round((mouse_x - offset_x) / self.cell_size)
+                    y = round((mouse_y - offset_y) / self.cell_size)
+                    # 确保坐标在合法范围内
+                    x = max(0, min(x, self.board_size - 1))
+                    y = max(0, min(y, self.board_size - 1))
+                    self.next_move = (y, x)
+
+        threading.Thread(target=self.render_task, args=(board, text)).start()
