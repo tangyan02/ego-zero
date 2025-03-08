@@ -8,7 +8,7 @@ from MCTS import Node, MCTS
 from SampleSet import SampleSet
 
 
-def selfPlay(boardSize, tie_mu, numGames, total_games_count,
+def selfPlay(boardSize, tie_mu, numGames, num_processes,
              numSimulations, temperatureDefault, explorationFactor):
     onnx_model = Network.load_onnx_model("model/model_latest.onnx")
 
@@ -25,7 +25,7 @@ def selfPlay(boardSize, tie_mu, numGames, total_games_count,
         actions = []
         while True:
             step += 1
-            print(f"第 {i_numGames} 局，第 {step} 步")
+            print(f"进程 {num_processes}, 第 {i_numGames} 局, 第 {step} 步")
 
             mcts.search(game)
 

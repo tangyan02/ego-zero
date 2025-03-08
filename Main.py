@@ -42,7 +42,11 @@ def update_count(k, filepath="model/count.txt"):
     print(getTimeStr() + f"更新对局计数，当前完成对局 " + str(count))
     return count
 
+
 if __name__ == "__main__":
+
+    multiprocessing.set_start_method('spawn')  # 在主进程设置一次
+
     dirPreBuild()
 
     board_size = 9
@@ -51,7 +55,7 @@ if __name__ == "__main__":
     temperatureDefault = 1
     explorationFactor = 5
     numGames = 4
-    num_processes = 4
+    num_processes = 5
 
     lr = 1e-3
     batch_size = 64
@@ -69,7 +73,7 @@ if __name__ == "__main__":
         start_time = time.time()
 
         pool = multiprocessing.Pool(processes=num_processes)
-        args = [(board_size, tie_mu, numGames, total_games_count, numSimulations,
+        args = [(board_size, tie_mu, numGames, num_processes, numSimulations,
                  temperatureDefault, explorationFactor) for _ in range(num_processes)]
         results = pool.starmap(SelfPlay.selfPlay, args)
 
