@@ -1,10 +1,8 @@
-import random
-from math import sqrt, log
+from math import sqrt
 
 import Network
 import Utils
 from Game import Game
-from tqdm import tqdm
 
 
 class Node:
@@ -67,13 +65,8 @@ class MCTS:
         """
         self.root = Node()
 
-        bar = tqdm(total=self.iterations)
         for i in range(self.iterations):
-            # print(f"第 {i} 次模拟")
-            bar.update(1)
             self.simulate(game.copy())
-
-        bar.close()
 
     def simulate(self, game):
         node = self.root

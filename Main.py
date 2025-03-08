@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-import torch
+import multiprocessing
 
 import SelfPlay
 from GameUI import GameUI
@@ -44,6 +44,17 @@ def update_count(k, filepath="model/count.txt"):
     return count
 
 
+def self_play_process(board_size, tie_mu, numGames, total_games_count, numSimulations,
+                      temperatureDefault, explorationFactor, ui_enable):
+    """
+    用于多进程处理的selfPlay函数
+    """
+    # 在子进程中创建GameUI对象
+    game_ui = GameUI(board_size)
+    return SelfPlay.selfPlay(board_size, tie_mu, numGames, total_games_count, numSimulations,
+                             temperatureDefault, explorationFactor, ui_enable, game_ui)
+
+
 if __name__ == "__main__":
     dirPreBuild()
 
@@ -53,6 +64,8 @@ if __name__ == "__main__":
     temperatureDefault = 1
     explorationFactor = 5
     numGames = 5
+    num_processes = 4
+    # 开启4个进程
 
     lr = 1e-3
     batch_size = 64
@@ -62,7 +75,6 @@ if __name__ == "__main__":
     # 模型初始化
     device = getDevice()
     model, optimizer = get_model(device, lr)
-    game_ui = GameUI(board_size)
     ui_enable = True
 
     save_model(model, optimizer, board_size)
@@ -71,9 +83,18 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        training_data = SelfPlay.selfPlay(board_size, tie_mu, numGames, total_games_count, numSimulations,
-                                          temperatureDefault, explorationFactor,
-                                          ui_enable, game_ui)
+        pool = multiprocessing.Pool(processes=num_processes)
+        args = [(board_size, tie_mu, numGames, total_games_count, numSimulations,
+                 temperatureDefault, explorationFactor, ui_enable) for _ in range(num_processes)]
+        results = pool.starmap(self_play_process, args)
+
+        pool.close()
+        pool.join()
+
+        # 合并结果
+        training_data = []
+        for data in results:
+            training_data.extend(data)
 
         end_time = time.time()
         print(getTimeStr() + f"自我对弈完毕，用时 {end_time - start_time} s")
@@ -92,5 +113,5 @@ if __name__ == "__main__":
         print(f"episode {i_episode} 完成")
 
         # 更新计数
-        count = numGames
+        count = numGames * num_processes
         total_games_count = update_count(count)
