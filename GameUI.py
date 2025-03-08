@@ -18,7 +18,7 @@ class GameUI:
         # 初始化 pygame
         pygame.init()
         # 计算窗口大小
-        self.window_size = 800
+        self.window_size = 600
         self.cell_size = self.window_size // self.board_size
         # 创建窗口
         self.screen = pygame.display.set_mode((self.window_size, self.window_size))
