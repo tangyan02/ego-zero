@@ -4,7 +4,6 @@ import numpy as np
 import multiprocessing
 
 import SelfPlay
-from GameUI import GameUI
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
@@ -43,18 +42,6 @@ def update_count(k, filepath="model/count.txt"):
     print(getTimeStr() + f"更新对局计数，当前完成对局 " + str(count))
     return count
 
-
-def self_play_process(board_size, tie_mu, numGames, total_games_count, numSimulations,
-                      temperatureDefault, explorationFactor, ui_enable):
-    """
-    用于多进程处理的selfPlay函数
-    """
-    # 在子进程中创建GameUI对象
-    game_ui = GameUI(board_size)
-    return SelfPlay.selfPlay(board_size, tie_mu, numGames, total_games_count, numSimulations,
-                             temperatureDefault, explorationFactor, ui_enable, game_ui)
-
-
 if __name__ == "__main__":
     dirPreBuild()
 
@@ -63,9 +50,8 @@ if __name__ == "__main__":
     numSimulations = 200
     temperatureDefault = 1
     explorationFactor = 5
-    numGames = 5
+    numGames = 4
     num_processes = 4
-    # 开启4个进程
 
     lr = 1e-3
     batch_size = 64
@@ -75,7 +61,6 @@ if __name__ == "__main__":
     # 模型初始化
     device = getDevice()
     model, optimizer = get_model(device, lr)
-    ui_enable = True
 
     save_model(model, optimizer, board_size)
 
@@ -85,8 +70,8 @@ if __name__ == "__main__":
 
         pool = multiprocessing.Pool(processes=num_processes)
         args = [(board_size, tie_mu, numGames, total_games_count, numSimulations,
-                 temperatureDefault, explorationFactor, ui_enable) for _ in range(num_processes)]
-        results = pool.starmap(self_play_process, args)
+                 temperatureDefault, explorationFactor) for _ in range(num_processes)]
+        results = pool.starmap(SelfPlay.selfPlay, args)
 
         pool.close()
         pool.join()

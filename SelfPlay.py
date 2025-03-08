@@ -9,8 +9,7 @@ from SampleSet import SampleSet
 
 
 def selfPlay(boardSize, tie_mu, numGames, total_games_count,
-             numSimulations, temperatureDefault, explorationFactor,
-             ui_enable=False, game_ui=None):
+             numSimulations, temperatureDefault, explorationFactor):
     onnx_model = Network.load_onnx_model("model/model_latest.onnx")
 
     training_data = []
@@ -60,16 +59,11 @@ def selfPlay(boardSize, tie_mu, numGames, total_games_count,
                 break
             # print(actions)
             game.render()
-            if ui_enable is True:
-                game_ui.render(game.board,
-                               f"总局数 {total_games_count}， 第 {i_numGames} 局，第 {step} 步， 玩家 {3 - game.current_player} 落子 {node.move}  访问次数 {node.visits}")
 
         winner = game.calculate_winner()
         print(f"本局胜方 玩家 {winner}")
 
         game.render()
-        if ui_enable is True:
-            game_ui.render(game.board, f"本局胜方 玩家 {winner}")
 
         for (state, player, probs) in actions:
             value = 0

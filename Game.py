@@ -4,7 +4,6 @@ from time import sleep
 import numpy as np
 
 import Utils
-from GameUI import GameUI
 
 
 class Point:
@@ -361,7 +360,6 @@ if __name__ == "__main__":
     game = Game(board_size=9)
     game.reset()
     game.render()
-    gameUi = GameUI(board_size=9)
 
     for i in range(1000):
         print(f"第 {i} 步")
@@ -371,10 +369,8 @@ if __name__ == "__main__":
 
         if game.end_game_check():
             game.render()
-            gameUi.render(game.board, "测试")
             break
 
         game.render()
-        gameUi.render(game.board, "测试")
 
     game.calculate_scores()
