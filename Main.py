@@ -8,6 +8,11 @@ from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
 
+import sys
+
+sys.stdout = sys.__stdout__
+sys.stdout.reconfigure(line_buffering=True)  # 强制行缓冲
+
 
 def get_extended_data(play_data):
     extend_data = []
@@ -73,8 +78,8 @@ if __name__ == "__main__":
         start_time = time.time()
 
         pool = multiprocessing.Pool(processes=num_processes)
-        args = [(board_size, tie_mu, numGames, num_processes, numSimulations,
-                 temperatureDefault, explorationFactor) for _ in range(num_processes)]
+        args = [(board_size, tie_mu, numGames, i, numSimulations,
+                 temperatureDefault, explorationFactor) for i in range(num_processes)]
         results = pool.starmap(SelfPlay.selfPlay, args)
 
         pool.close()
