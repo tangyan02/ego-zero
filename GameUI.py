@@ -1,4 +1,3 @@
-# 定义棋盘的颜色
 import threading
 
 import pygame
@@ -8,7 +7,6 @@ LINE_COLOR = (0, 0, 0)
 BLACK_STONE_COLOR = (0, 0, 0)
 WHITE_STONE_COLOR = (255, 255, 255)
 TEXT_COLOR = (0, 0, 0)  # 文字颜色
-
 
 class GameUI:
 
@@ -37,7 +35,7 @@ class GameUI:
 
         pygame.display.set_caption("围棋棋盘")
 
-    def render_task(self, board, info_text=""):
+    def render_task(self, board, info_text="", probability_list=None):
         # 填充背景色
         self.screen.fill(BOARD_COLOR)
 
@@ -76,6 +74,21 @@ class GameUI:
                     x = offset_y + j * self.cell_size
                     pygame.draw.circle(self.screen, WHITE_STONE_COLOR, (x, y), self.cell_size // 2 - 2)
 
+        # 绘制概率值
+        if probability_list:
+            for x, y, prob in probability_list:
+                # 调整坐标到网格交叉点
+                prob_y = offset_x + x * self.cell_size
+                prob_x = offset_y + y * self.cell_size
+                prob_text = f"{prob:.2f}"
+                # 根据概率值调整颜色，概率越小越黄
+                blue_value = int(255 * prob)
+                yellow_value = 255 - blue_value
+                color = (yellow_value, yellow_value, blue_value)
+                prob_surface = self.font.render(prob_text, True, color)
+                prob_rect = prob_surface.get_rect(center=(prob_x, prob_y))
+                self.screen.blit(prob_surface, prob_rect)
+
         # 绘制状态栏背景
         pygame.draw.rect(self.screen, (220, 220, 220), (0, self.window_size, self.window_size, self.status_bar_height))
 
@@ -87,7 +100,7 @@ class GameUI:
         # 更新显示
         pygame.display.flip()
 
-    def render(self, board, text=""):
+    def render(self, board, text="", probability_list=None):
         for event in pygame.event.get():  # pygame 退出
             if event.type == pygame.QUIT:
                 return
@@ -110,4 +123,20 @@ class GameUI:
                     y = max(0, min(y, self.board_size - 1))
                     self.next_move = (y, x)
 
-        threading.Thread(target=self.render_task, args=(board, text)).start()
+        threading.Thread(target=self.render_task, args=(board, text, probability_list)).start()
+
+
+# 以下是使用示例
+if __name__ == "__main__":
+    board_size = 9
+    game_ui = GameUI(board_size)
+    board = [[0] * board_size for _ in range(board_size)]
+    probability_list = [(2, 3, 0.2), (4, 5, 0.8)]  # 示例概率数组
+    game_ui.render(board, "测试", probability_list)
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+    pygame.quit()

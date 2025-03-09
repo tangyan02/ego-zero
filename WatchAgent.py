@@ -17,7 +17,8 @@ tie_mu = 3.25
 onnx_model = Network.load_onnx_model("model/model_latest.onnx")
 game = Game(board_size=board_size, device=Utils.getDevice(), tie_mu=tie_mu)
 
-players = [0, "AI", "HUMAN"]
+# players = [0, "AI", "HUMAN"]
+players = [0, "AI", "AI"]
 
 while True:
 
@@ -39,8 +40,9 @@ while True:
 
         game.make_move(maxMove[0], maxMove[1])
 
+        probs = [(child.move[0], child.move[1], child.visits / mcts.root.visits) for child in mcts.root.children]
         game.render()
-        gameUi.render(game.board, "测试")
+        gameUi.render(game.board, "测试", probs)
 
     if players[game.current_player] == "HUMAN":
         if gameUi.next_move is not None:
@@ -51,6 +53,5 @@ while True:
         gameUi.render(game.board, "测试")
 
     if game.end_game_check():
+        print("胜利玩家 ", game.calculate_winner(), "得分对比", game.calculate_scores())
         break
-
-time.sleep(0)
