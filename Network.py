@@ -1,4 +1,6 @@
 import os
+import random
+import time
 
 import numpy as np
 import torch
@@ -183,11 +185,19 @@ def load_onnx_model(model_path):
     :return: ONNX 运行时的会话
     """
     # 尝试优先使用GPU，如果没有GPU则使用CPU
-    providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
-    session = ort.InferenceSession(model_path, providers=providers)
-    # 查看实际使用的执行提供程序
-    print("当前使用的执行提供程序:", session.get_providers())
-    return session
+    max_retries = 10
+    retries = 0
+    while retries < max_retries:
+        try:
+            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+            session = ort.InferenceSession(model_path, providers=providers)
+            # 查看实际使用的执行提供程序
+            print("当前使用的执行提供程序:", session.get_providers())
+            return session
+        except Exception as e:
+            print(f"Failed to load ONNX model: {e}. Retrying in 5 seconds...")
+            retries += 1
+            time.sleep(random.randint(30, 60))
 
 
 def evaluate_state_onnx(onnx_model, input_tensor):
