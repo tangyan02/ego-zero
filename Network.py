@@ -189,7 +189,7 @@ def load_onnx_model(model_path):
     retries = 0
     while retries < max_retries:
         try:
-            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+            providers = ['CUDAExecutionProvider', 'CoreMLExecutionProvider', 'CPUExecutionProvider']
             session = ort.InferenceSession(model_path, providers=providers)
             # 查看实际使用的执行提供程序
             print("当前使用的执行提供程序:", session.get_providers())
@@ -214,7 +214,8 @@ def evaluate_state_onnx(onnx_model, input_tensor):
     # 进行推理
     outputs = onnx_model.run(None, {input_name: input_tensor.cpu().numpy()})
     value, probs = outputs
-    probs = np.exp(probs)
+    value = value[0][0]
+    probs = np.exp(probs[0])
     return value, probs
 
 
@@ -238,16 +239,15 @@ if __name__ == "__main__":
     game = Game(board_size)
     game.parse(data)
 
-    # 加载 ONNX 模型
     onnx_session = load_onnx_model('model/model_latest.onnx')
     # 获取输入状态
-    state = get_state(game).cuda()
+    state = get_state(game)
     # 进行 ONNX 推理
-    onnx_outputs = evaluate_state_onnx(onnx_session, state)
-    print("ONNX 推理结果:", onnx_outputs)
+    value, probs = evaluate_state_onnx(onnx_session, state)
+    print("ONNX 推理结果:", value, probs)
 
-    prob = onnx_outputs[1].reshape(9, 9)
-    print(prob)
+    # prob = onnx_outputs[1].reshape(9, 9)
+    # print(prob)
 
     # predicted_values, predicted_action_logits = model(state)
     # print("predicted_values, predicted_action_logits shape", predicted_values.shape, predicted_action_logits.shape)

@@ -12,6 +12,9 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
              numSimulations, temperatureDefault, explorationFactor):
     onnx_model = Network.load_onnx_model("model/model_latest.onnx")
 
+    if onnx_model is None:
+        return []
+
     training_data = []
 
     for i_numGames in range(numGames):
@@ -79,7 +82,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
 if __name__ == "__main__":
     model, _ = Network.get_model(Utils.getDevice(), 1e-3)
-    training_data = selfPlay(9, 3, 1,0, 10, 1, 3)
+    training_data = selfPlay(9, 3, 1, 0, 10, 1, 3)
     print(training_data)
     sample_set = SampleSet(training_data)
     dataloader = DataLoader(sample_set, batch_size=32, shuffle=True)

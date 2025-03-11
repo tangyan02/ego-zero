@@ -89,11 +89,10 @@ class MCTS:
             if len(valid_moves) > 1:
                 for move in valid_moves:
                     idx = move[0] * game.board_size + move[1]
-                    probs_arr.append(probs[0][idx])
+                    probs_arr.append(probs[idx])
             else:
                 probs_arr.append(1)
 
-            value = value[0][0]
             node.expand(valid_moves, probs_arr)
 
         node.update(-value)
