@@ -87,7 +87,10 @@ if __name__ == "__main__":
 
         # 合并结果
         training_data = []
+        succeeded = 0
         for data in results:
+            if len(data) > 0:
+                succeeded += 1
             training_data.extend(data)
 
         end_time = time.time()
@@ -107,5 +110,5 @@ if __name__ == "__main__":
         print(f"episode {i_episode} 完成")
 
         # 更新计数
-        count = numGames * num_processes
+        count = numGames * succeeded
         total_games_count = update_count(count)
