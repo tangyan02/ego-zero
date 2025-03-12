@@ -63,7 +63,8 @@ class MCTS:
         """
         进行 MCTS 搜索
         """
-        self.root = Node()
+        if self.root is None:
+            self.root = Node()
 
         for i in range(self.iterations):
             self.simulate(game.copy())
