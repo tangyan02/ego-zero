@@ -60,7 +60,7 @@ if __name__ == "__main__":
     temperatureDefault = 1
     explorationFactor = 5
     numGames = 4
-    num_processes = 5
+    num_processes = 6
 
     lr = 1e-3
     batch_size = 64
