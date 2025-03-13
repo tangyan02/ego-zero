@@ -31,6 +31,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
             print(f"进程 {num_processes}, 第 {i_numGames} 局, 第 {step} 步")
 
             mcts.search(game)
+            mcts.root = Node()
 
             # 步骤 1: 提取 visit 的数值
             # 步骤 2: 归一化得到概率分布
@@ -57,6 +58,8 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             print("玩家 ", game.current_player, "落子 ", node.move, " 访问次数 ", node.visits)
             game.make_move(node.move[0], node.move[1])
+
+
 
             if game.end_game_check():
                 break
