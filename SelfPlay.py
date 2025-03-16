@@ -20,7 +20,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
     for i_numGames in range(numGames):
         game = Game(board_size=boardSize, device=Utils.getDevice(), tie_mu=tie_mu)
         root = Node()
-        mcts = MCTS(model=onnx_model, iterations=numSimulations, exploration_constant=explorationFactor)
+        mcts = MCTS(model=onnx_model, exploration_constant=explorationFactor)
         mcts.root = root
 
         step = 0
@@ -28,10 +28,11 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
         actions = []
         while True:
             step += 1
-            print(f"进程 {num_processes}, 第 {i_numGames} 局, 第 {step} 步")
 
-            mcts.root = Node()
-            mcts.search(game)
+            needSearchCount = numSimulations - mcts.root.visits
+
+            print(f"进程 {num_processes}, 第 {i_numGames} 局, 模拟次数 {needSearchCount},  第 {step} 步")
+            mcts.search(game, needSearchCount)
 
             # 步骤 1: 提取 visit 的数值
             # 步骤 2: 归一化得到概率分布
@@ -57,12 +58,13 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
             print("玩家 ", game.current_player, "落子 ", node.move, " 访问次数 ", node.visits)
             game.make_move(node.move[0], node.move[1])
 
-
-
             if game.end_game_check():
                 break
             # print(actions)
             game.render()
+
+            mcts.root = node
+            node.parent = None
 
         winner = game.calculate_winner()
         print(f"本局胜方 玩家 {winner}")

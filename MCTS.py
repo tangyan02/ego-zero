@@ -53,20 +53,19 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, model, iterations, exploration_constant=1.414):
+    def __init__(self, model, exploration_constant=1.414):
         self.root = None
-        self.iterations = iterations
         self.model = model
         self.exploration_constant = exploration_constant
 
-    def search(self, game):
+    def search(self, game, iterations):
         """
         进行 MCTS 搜索
         """
         if self.root is None:
             self.root = Node()
 
-        for i in range(self.iterations):
+        for i in range(iterations):
             self.simulate(game.copy())
 
     def simulate(self, game):
@@ -110,13 +109,13 @@ if __name__ == "__main__":
 
     model, _ = Network.get_model(device, lr)
     node = Node()
-    mcts = MCTS(iterations=800, model=model, exploration_constant=3)
+    mcts = MCTS(model=model, exploration_constant=3)
     mcts.root = node
 
     for i in range(1000):
         print(f"第 {i} 步")
 
-        mcts.search(game)
+        mcts.search(game, 800)
         best_child = max(mcts.root.children, key=lambda child: child.visits)
         sorted_children = sorted(mcts.root.children, key=lambda child: child.visits, reverse=True)
         moves = [(child.move, child.visits, child.value) for child in sorted_children]

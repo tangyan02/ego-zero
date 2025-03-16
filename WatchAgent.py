@@ -30,7 +30,7 @@ while True:
         continue
 
     root = Node()
-    mcts = MCTS(model=onnx_model, iterations=1, exploration_constant=3)
+    mcts = MCTS(model=onnx_model, exploration_constant=3)
     mcts.root = root
     while True:
         if gameUi.next_move is not None:
@@ -42,7 +42,7 @@ while True:
 
         probs = None
         if hint[game.current_player]:
-            mcts.search(game)
+            mcts.search(game, 1)
             probs = [(child.move[0], child.move[1], child.visits / mcts.root.visits) for child in
                      mcts.root.children]
 
