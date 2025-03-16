@@ -54,9 +54,9 @@ if __name__ == "__main__":
 
     dirPreBuild()
 
-    board_size = 9
+    board_size = 19
     tie_mu = 3.25
-    numSimulations = 200
+    numSimulations = 800
     temperatureDefault = 1
     explorationFactor = 5
     numGames = 4
