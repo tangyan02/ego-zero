@@ -41,8 +41,6 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             probabilities = visit_values / visit_sum
 
-            # print(visit_values)
-            # print(probabilities)
             random_index = np.random.choice(len(mcts.root.children), p=probabilities)
             node = mcts.root.children[random_index]
 
