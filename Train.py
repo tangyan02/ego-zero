@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+import Logger
 from SampleSet import SampleSet
 # 定义训练数据集类
 from Utils import getTimeStr
@@ -44,4 +45,4 @@ def train(extended_data, network, device, optimizer, batch_size, i_episode):
 
         running_loss += loss.item()
 
-    print(getTimeStr() + f"episode {i_episode} Loss: {running_loss / len(dataloader)}")
+    Logger.info(f"episode {i_episode} Loss: {running_loss / len(dataloader)}")

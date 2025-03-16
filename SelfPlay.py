@@ -1,6 +1,7 @@
 import numpy as np
 from torch.utils.data import DataLoader
 
+import Logger
 import Network
 import Utils
 from Game import Game
@@ -31,7 +32,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             needSearchCount = numSimulations - mcts.root.visits
 
-            print(f"进程 {num_processes}, 第 {i_numGames} 局, 模拟次数 {needSearchCount},  第 {step} 步")
+            Logger.info(f"进程 {num_processes}, 第 {i_numGames} 局, 模拟次数 {needSearchCount},  第 {step} 步")
             mcts.search(game, needSearchCount)
 
             # 步骤 1: 提取 visit 的数值
@@ -55,7 +56,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             actions.append((Network.get_state(game).cpu(), game.current_player, probs_matrix))
 
-            print("玩家 ", game.current_player, "落子 ", node.move, " 访问次数 ", node.visits)
+            Logger.info(f"玩家 {game.current_player}, 落子  {node.move},  访问次数 {node.visits}")
             game.make_move(node.move[0], node.move[1])
 
             if game.end_game_check():
@@ -67,7 +68,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
             node.parent = None
 
         winner = game.calculate_winner()
-        print(f"本局胜方 玩家 {winner}")
+        Logger.info(f"本局胜方 玩家 {winner}")
 
         game.render()
 

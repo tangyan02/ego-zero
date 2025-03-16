@@ -3,6 +3,7 @@ import time
 import numpy as np
 import multiprocessing
 
+import Logger
 import SelfPlay
 from Network import get_model, save_model
 from Train import train
@@ -94,10 +95,10 @@ if __name__ == "__main__":
             training_data.extend(data)
 
         end_time = time.time()
-        print(getTimeStr() + f"自我对弈完毕，用时 {end_time - start_time} s")
+        Logger.info(f"自我对弈完毕，用时 {end_time - start_time} s")
 
         extended_data = get_extended_data(training_data)
-        print(getTimeStr() + f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
+        Logger.info(f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
             round(len(extended_data) / (end_time - start_time), 1)) + " 条/s")
 
         train(extended_data, model, device, optimizer, batch_size, i_episode)
@@ -105,9 +106,9 @@ if __name__ == "__main__":
         if i_episode % 100 == 0:
             save_model(model, optimizer, board_size, f"_{i_episode}")
         save_model(model, optimizer, board_size)
-        print(getTimeStr() + f"最新模型已保存 episode:{i_episode}")
+        Logger.info(f"最新模型已保存 episode:{i_episode}")
 
-        print(f"episode {i_episode} 完成")
+        Logger.info(f"episode {i_episode} 完成")
 
         # 更新计数
         count = numGames * succeeded
