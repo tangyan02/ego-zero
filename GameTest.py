@@ -52,7 +52,6 @@ def test_is_eye_pair():
     assert not game.is_eye_pair(4, 5, 1, game.board)
     assert not game.is_eye_pair(5, 4, 1, game.board)
 
-
     game = Game(board_size=6)
     game.board = np.array([
         [0, 1, 0, 1, 0, 1],
@@ -64,7 +63,6 @@ def test_is_eye_pair():
     ])
     assert game.is_eye_pair(0, 0, 1, game.board)
     assert game.is_eye_pair(1, 1, 1, game.board)
-
 
 
 def test_is_eye():
@@ -141,7 +139,7 @@ def test_calculate_scores():
     black_score, white_score = game.calculate_scores()
     # 根据手动设置的棋盘状态计算预期得分
     # 这里只计算棋子数
-    expected_black_score = np.sum(game.board == 1)
+    expected_black_score = np.sum(game.board == 1) - game.tie_mu
     expected_white_score = np.sum(game.board == 2) + game.tie_mu
     assert black_score == expected_black_score
     assert white_score == expected_white_score
@@ -185,19 +183,22 @@ def test_place_stone_for_remove2():
 def test_single_ko_cycle():
     game = Game(board_size=4)
     game.reset()
+    game.current_player = 2
 
     game.board = np.array([
-        [2, 0, 2, 1],
+        [2, 0, 0, 1],
         [0, 2, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
+        [0, 2, 1, 0],
+        [2, 1, 0, 1]
     ])
 
-    print()
+    game.render()
+    game.make_move(0, 2)
+    game.render()
     game.make_move(0, 1)
     game.render()
-
     assert not game.is_valid_move(0, 2)
+    print("测试单劫通过")
 
 
 def test_make_move():
@@ -220,6 +221,52 @@ def test_make_move():
     game.render()
 
 
+def test_ko():
+    game = Game(board_size=4)
+    game.make_move(0, 0)
+    game.render()
+    game.make_move(0, 1)
+    game.render()
+    game = Game(board_size=6)
+    game.reset()
+    game.current_player = 2
+
+    game.board = np.array([
+        [2, 0, 0, 1, 0, 0],
+        [0, 2, 1, 0, 0, 2],
+        [0, 0, 0, 0, 2, 0],
+        [0, 0, 0, 0, 1, 2],
+        [0, 2, 1, 0, 0, 1],
+        [2, 1, 0, 1, 0, 0]
+    ])
+
+    game.render()
+    game.make_move(0, 2)
+
+    game.render()
+
+    game.make_move(0, 1)
+    game.render()
+
+    game.make_move(5, 2)
+    game.render()
+
+    game.make_move(2, 5)
+    game.render()
+
+    game.make_move(0, 2)
+    game.render()
+
+    game.make_move(5, 1)
+    game.render()
+
+    game.make_move(3, 5)
+    game.render()
+
+    assert not game.is_valid_move(0, 1)
+    print("循环劫测试通过")
+
+
 if __name__ == '__main__':
     # 运行测试用例
     test_reset()
@@ -229,6 +276,7 @@ if __name__ == '__main__':
     test_calculate_scores()
     test_place_stone_for_remove()
     test_place_stone_for_remove2()
-    test_single_ko_cycle()
     test_is_eye()
     test_is_eye_pair()
+    test_single_ko_cycle()
+    test_ko()

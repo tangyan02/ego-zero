@@ -18,9 +18,9 @@ class Game:
         self.board = np.zeros((board_size, board_size), dtype=np.uint8)
         self.current_player = 1
         self.history = []
-        self.ko_point = None  # 用于记录劫的位置
+        self.move_history = []
+        self.history_max_size = 8
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
-        self.ko_history = []  # 记录劫的历史状态，用于处理单劫循环
         self.device = device
         self.tie_mu = tie_mu
 
@@ -46,9 +46,8 @@ class Game:
         self.board = np.zeros((self.board_size, self.board_size), dtype=np.uint8)
         self.current_player = 1
         self.history = []
-        self.ko_point = None
         self.pass_count = 0
-        self.ko_history = []
+        self.move_history = []
         return self.board
 
     def is_valid_move(self, x, y):
@@ -60,10 +59,6 @@ class Game:
         # 临时落子
         temp_board = self.board.copy()
         temp_board[x, y] = self.current_player
-
-        # 检查单劫循环
-        if (x, y) in self.ko_history and np.array_equal(temp_board, self.history[-1]):
-            return False
 
         # 检查并移除对手的死子
         opponent = 3 - self.current_player
@@ -83,9 +78,12 @@ class Game:
         if not has_liberty:
             return False
 
-        # 检查是否违反打劫规则
-        if len(self.history) > 0 and self.ko_point == (x, y) and np.array_equal(temp_board, self.history[-1]):
-            return False
+        # 检查劫循环
+        if len(dead_stones) > 0:
+            for idx, (his_x, his_y) in enumerate(self.move_history):
+                if x == his_x and y == his_y:
+                    if np.array_equal(temp_board, self.history[idx]):
+                        return False
 
         # 检查是否为己方的眼位
         if self.is_eye(x, y, self.current_player, self.board):
@@ -101,9 +99,7 @@ class Game:
 
         # if not self.is_valid_move(x, y):
         #     return False
-
         self.board[x, y] = self.current_player
-        self.history.append(self.board.copy())
         # print(f"玩家 {self.current_player} 落子 {x}, {y}")
 
         # 检查并移除对手的死子
@@ -119,12 +115,17 @@ class Game:
         for dx, dy in dead_stones:
             self.board[dx, dy] = 0
 
-        # 更新劫的位置
-        if len(dead_stones) == 1:
-            self.ko_point = dead_stones[0]
-            self.ko_history.append(self.ko_point)
-        else:
-            self.ko_point = None
+        self.history.append(self.board.copy())
+        # 检查历史记录的长度是否超过 8
+        if len(self.history) > self.history_max_size:
+            # 截取掉早期的数据，只保留最新的 8 个元素
+            self.history = self.history[-self.history_max_size:]
+
+        # 更新落子的历史
+        self.move_history.append((x, y))
+        if len(self.move_history) > self.history_max_size:
+            # 截取掉早期的数据，只保留最新的 8 个元素
+            self.move_history = self.move_history[-self.history_max_size:]
 
         self.current_player = opponent
         self.pass_count = 0  # 落子后重置 pass 计数
