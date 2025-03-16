@@ -350,9 +350,8 @@ class Game:
         new_game.board = self.board.copy()
         new_game.current_player = self.current_player
         new_game.history = [board.copy() for board in self.history]
-        new_game.ko_point = self.ko_point
+        new_game.move_history = self.move_history.copy()
         new_game.pass_count = self.pass_count
-        new_game.ko_history = self.ko_history.copy()
         return new_game
 
 
