@@ -15,7 +15,7 @@ class Point:
 class Game:
     def __init__(self, board_size=19, device=Utils.getDevice(), tie_mu=6.5):
         self.board_size = board_size
-        self.board = np.zeros((board_size, board_size), dtype=int)
+        self.board = np.zeros((board_size, board_size), dtype=np.uint8)
         self.current_player = 1
         self.history = []
         self.ko_point = None  # 用于记录劫的位置
@@ -43,7 +43,7 @@ class Game:
             x += 1
 
     def reset(self):
-        self.board = np.zeros((self.board_size, self.board_size), dtype=int)
+        self.board = np.zeros((self.board_size, self.board_size), dtype=np.uint8)
         self.current_player = 1
         self.history = []
         self.ko_point = None
