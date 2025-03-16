@@ -11,6 +11,9 @@ from torch import optim
 import Utils
 from Game import Game
 import onnxruntime as ort
+import onnx
+
+from onnxconverter_common import float16
 
 
 # 定义一个Residual block
@@ -128,8 +131,8 @@ def get_model(device, lr):
     return model, optimizer
 
 
-def save_model(model, optimizer, boardSize, subfix="", ):
-    path = f"model/checkpoint{subfix}.pth"
+def save_model(model, optimizer, boardSize, fp16 = False):
+    path = f"model/checkpoint.pth"
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
@@ -146,6 +149,10 @@ def save_model(model, optimizer, boardSize, subfix="", ):
                       output_names=['value', "act"],
                       opset_version=17,
                       verbose=False)
+
+    onnx_model = onnx.load("model/model_latest.onnx")
+    onnx_model_fp16 = float16.convert_float_to_float16(onnx_model)
+    onnx.save(onnx_model_fp16, "model/model_latest_fp16.onnx")
 
     model.train()
 
@@ -215,6 +222,10 @@ def evaluate_state_onnx(onnx_model, input_tensor):
     input_name = onnx_model.get_inputs()[0].name
     if input_tensor.dim() == 3:
         input_tensor = input_tensor.unsqueeze(0)
+
+    # 将输入张量的精度转换为 fp16
+    input_tensor = input_tensor.half()
+
     # 进行推理
     outputs = onnx_model.run(None, {input_name: input_tensor.cpu().numpy()})
     value, probs = outputs

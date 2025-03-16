@@ -103,8 +103,6 @@ if __name__ == "__main__":
 
         train(extended_data, model, device, optimizer, batch_size, i_episode)
 
-        if i_episode % 100 == 0:
-            save_model(model, optimizer, board_size, f"_{i_episode}")
         save_model(model, optimizer, board_size)
         Logger.info(f"最新模型已保存 episode:{i_episode}")
 

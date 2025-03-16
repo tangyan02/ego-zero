@@ -7,11 +7,12 @@ import Utils
 from Game import Game
 from MCTS import Node, MCTS
 from SampleSet import SampleSet
+import time
 
 
 def selfPlay(boardSize, tie_mu, numGames, num_processes,
              numSimulations, temperatureDefault, explorationFactor):
-    onnx_model = Network.load_onnx_model("model/model_latest.onnx")
+    onnx_model = Network.load_onnx_model("model/model_latest_fp16.onnx")
 
     if onnx_model is None:
         return []
@@ -28,6 +29,8 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
         actions = []
         while True:
+            start_time = time.time()
+
             step += 1
 
             needSearchCount = numSimulations - mcts.root.visits
@@ -56,7 +59,10 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             actions.append((Network.get_state(game).cpu(), game.current_player, probs_matrix))
 
-            Logger.info(f"玩家 {game.current_player}, 落子  {node.move},  访问次数 {node.visits}")
+            end_time = time.time()
+            Logger.info(
+                f"玩家 {game.current_player}, 落子  {node.move},  访问次数 {node.visits} "
+                f", 速度 {round(needSearchCount / (end_time - start_time), 1)} 次/秒")
             game.make_move(node.move[0], node.move[1])
 
             if game.end_game_check():
