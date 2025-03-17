@@ -66,7 +66,9 @@ class MCTS:
             self.root = Node()
 
         for i in range(iterations):
-            self.simulate(game.copy())
+            game_tmp = game.copy()
+            self.simulate(game_tmp)
+            del game_tmp
 
     def simulate(self, game):
         node = self.root
@@ -79,9 +81,9 @@ class MCTS:
         if game.end_game_check():
             winner = game.calculate_winner()
             if winner == game.current_player:
-                value =  1
+                value = 1
             if winner == 3 - game.current_player:
-                value =  -1
+                value = -1
         else:
             value, probs = Network.evaluate_state_onnx(self.model, Network.get_state(game))
             valid_moves = game.get_all_valid_moves_include_pass()
@@ -121,7 +123,7 @@ if __name__ == "__main__":
         moves = [(child.move, child.visits, child.value) for child in sorted_children]
         print("可选落子", moves)
         print("玩家 ", game.current_player, "落子 ", best_child.move,
-              "访问次数 ", best_child.visits, "得分 ",best_child.value)
+              "访问次数 ", best_child.visits, "得分 ", best_child.value)
         game.make_move(best_child.move[0], best_child.move[1])
         if game.end_game_check():
             break
