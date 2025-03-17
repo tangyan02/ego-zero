@@ -1,6 +1,4 @@
 import os
-import random
-import time
 
 import numpy as np
 import torch
@@ -47,23 +45,13 @@ class PolicyValueNetwork(nn.Module):
     def __init__(self):
         self.board_size = 19
         self.input_channels = 17
-        self.residual_channels = 256
+        self.residual_channels = 128
         super(PolicyValueNetwork, self).__init__()
 
         # common layers
         self.conv1 = nn.Conv2d(self.input_channels, self.residual_channels, kernel_size=(3, 3), padding=1)
 
         self.residual_blocks = nn.Sequential(
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
-            ResidualBlock(self.residual_channels),
             ResidualBlock(self.residual_channels),
             ResidualBlock(self.residual_channels),
             ResidualBlock(self.residual_channels),
@@ -131,7 +119,7 @@ def get_model(device, lr):
     return model, optimizer
 
 
-def save_model(model, optimizer, boardSize, fp16 = False):
+def save_model(model, optimizer, boardSize, fp16=False):
     path = f"model/checkpoint.pth"
     torch.save({
         'model_state_dict': model.state_dict(),
@@ -159,20 +147,23 @@ def save_model(model, optimizer, boardSize, fp16 = False):
 
 def evaluate_state(model, state):
     ret = model(state)
-    return ret[0].item(), torch.exp(ret[1]).cpu().detach().numpy()
+    value, probs = ret[0].item(), torch.exp(ret[1]).cpu().detach().numpy()
+    del ret
+    return value, probs
 
 
 def get_state(game):
     limit = 8
-    tensor = torch.zeros(limit * 2 + 1, game.board_size, game.board_size, device="cpu")
+    # 直接创建 NumPy 数组
+    numpy_array = np.zeros((limit * 2 + 1, game.board_size, game.board_size))
     k = 0
     for board in game.history[-limit:][::-1]:
         for x in range(game.board_size):
             for y in range(game.board_size):
                 if board[x][y] == game.current_player:
-                    tensor[k, x, y] = 1
+                    numpy_array[k, x, y] = 1
                 else:
-                    tensor[k, x, y] = 0
+                    numpy_array[k, x, y] = 0
         k = k + 1
 
     k = limit
@@ -180,17 +171,18 @@ def get_state(game):
         for x in range(game.board_size):
             for y in range(game.board_size):
                 if board[x][y] == 3 - game.current_player:
-                    tensor[k, x, y] = 1
+                    numpy_array[k, x, y] = 1
                 else:
-                    tensor[k, x, y] = 0
+                    numpy_array[k, x, y] = 0
         k = k + 1
+
     # 判断自己是先还是后
     if game.current_player == 1:
         for x in range(game.board_size):
             for y in range(game.board_size):
-                tensor[k, x, y] = 1
+                numpy_array[k, x, y] = 1
 
-    return tensor
+    return numpy_array
 
 
 def load_onnx_model(model_path):
@@ -211,14 +203,16 @@ def load_onnx_model(model_path):
     return None
 
 
-def evaluate_state_onnx(onnx_model, input_tensor):
+def evaluate_state_onnx(onnx_model, input):
     """
     使用 ONNX 模型进行推理
     :param session: ONNX 运行时的会话
     :param input_tensor: 输入的张量
     :return: 推理结果
     """
+
     # 获取输入名称
+    input_tensor = torch.from_numpy(input).float()
     input_name = onnx_model.get_inputs()[0].name
     if input_tensor.dim() == 3:
         input_tensor = input_tensor.unsqueeze(0)

@@ -57,7 +57,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
                     probs_matrix[child.move[0]][child.move[1]] = child.visits / visit_sum
             # print(probs_matrix)
 
-            actions.append((Network.get_state(game).cpu(), game.current_player, probs_matrix))
+            actions.append((Network.get_state(game), game.current_player, probs_matrix))
 
             end_time = time.time()
             Logger.info(
