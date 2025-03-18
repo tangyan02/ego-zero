@@ -19,6 +19,8 @@ class Game:
         self.current_player = 1
         self.history = []
         self.move_history = []
+        self.banned_moves = set()  # 记录当前玩家的禁止点
+        self.eat_moves = {}  # 记录当前玩家的打吃点，和对手的被吃点
         self.history_max_size = 8
         self.pass_count = 0  # 记录双方连续 passes 的次数，用于终局判定
         self.device = device
@@ -41,14 +43,7 @@ class Game:
                 y += 1
             y = 0
             x += 1
-
-    def reset(self):
-        self.board = np.zeros((self.board_size, self.board_size), dtype=np.uint8)
-        self.current_player = 1
-        self.history = []
-        self.pass_count = 0
-        self.move_history = []
-        return self.board
+        self.refresh_banned_moves()
 
     def is_valid_move(self, x, y):
         if x < 0 or x >= self.board_size or y < 0 or y >= self.board_size:
@@ -74,8 +69,7 @@ class Game:
             temp_board[dx, dy] = 0
 
         # 检查落子后己方棋块是否有气
-        group, has_liberty = self.get_group(x, y, temp_board)
-        if not has_liberty:
+        if (x, y) in self.banned_moves:
             return False
 
         # 检查劫循环
@@ -129,7 +123,9 @@ class Game:
 
         self.current_player = opponent
         self.pass_count = 0  # 落子后重置 pass 计数
-        # self.render()
+
+        # 更新禁止点
+        self.refresh_banned_moves()
         return True
 
     def get_all_valid_moves(self):
@@ -303,9 +299,9 @@ class Game:
             return True
 
     def is_cross_eye(self, x, y, player, board=None):
-        """
-        仅判断上下左右均为己方
-        """
+        # """
+        # 仅判断上下左右均为己方
+        # """
         if board is None:
             board = self.board
         if board[x, y] != 0:
@@ -318,6 +314,26 @@ class Game:
                 if board[px][py] != player:
                     return False
         return True
+
+    def count_cross(self, x, y, player, board=None):
+        if board is None:
+            board = self.board
+
+        blank_count = 0
+        self_count = 0
+        opp_count = 0
+
+        # 相邻
+        cross_list = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        for px, py in cross_list:
+            if 0 <= px < self.board_size and 0 <= py < self.board_size:
+                if board[px][py] == 0:
+                    blank_count += 1
+                if board[px][py] == player:
+                    self_count += 1
+                if board[px][py] == 3 - player:
+                    opp_count += 1
+        return blank_count, self_count, opp_count
 
     def is_eye(self, x, y, player, board=None):
         """
@@ -340,30 +356,34 @@ class Game:
 
         return False
 
+    def refresh_banned_moves(self):
+        self.banned_moves = set()
+        for x in range(0, self.board_size):
+            for y in range(0, self.board_size):
+                if self.board[x][y] == 0:
+                    # 判断条件：周围没有气，且有对方棋子
+                    blank_count, self_count, opp_count = self.count_cross(x, y, self.current_player, self.board)
+                    if blank_count == 0 and opp_count > 0:
+                        # 尝试填充，然后判断有没有气
+                        self.board[x][y] = self.current_player
+                        group, has_liberty = self.get_group(x, y, self.board.copy())
+                        self.board[x][y] = 0
+                        if not has_liberty:
+                            self.banned_moves.add((x, y))
+
     def render(self):
         for row in self.board:
             print(' '.join(['.' if x == 0 else 'x' if x == 1 else 'o' for x in row]))
         print()
 
-    def copy(self):
-        new_game = Game(board_size=self.board_size, device=self.device, tie_mu=self.tie_mu)
-        new_game.board = self.board.copy()
-        new_game.current_player = self.current_player
-        new_game.history = [board.copy() for board in self.history]
-        new_game.move_history = self.move_history.copy()
-        new_game.pass_count = self.pass_count
-        return new_game
-
 
 if __name__ == "__main__":
     # 测试代码
-    game = Game(board_size=9)
-    game.reset()
+    game = Game(board_size=19)
     game.render()
 
     for i in range(1000):
         print(f"第 {i} 步")
-        sleep(1)
         if not game.make_random_move():
             game.pass_move()
 
@@ -373,4 +393,4 @@ if __name__ == "__main__":
 
         game.render()
 
-    game.calculate_scores()
+    print(game.calculate_scores())

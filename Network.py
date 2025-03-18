@@ -148,7 +148,6 @@ def save_model(model, optimizer, boardSize, fp16=False):
 def evaluate_state(model, state):
     ret = model(state)
     value, probs = ret[0].item(), torch.exp(ret[1]).cpu().detach().numpy()
-    del ret
     return value, probs
 
 

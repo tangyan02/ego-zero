@@ -3,16 +3,6 @@ import numpy as np
 from Game import Game
 
 
-# 测试重置棋盘
-def test_reset():
-    game = Game(board_size=9)
-    initial_board = game.board.copy()
-    game.board[0, 0] = 1
-    game.reset()
-    assert np.array_equal(game.board, initial_board)
-    print("重置棋盘测试通过")
-
-
 # 测试落子有效性
 def test_is_valid_move():
     game = Game(board_size=9)
@@ -182,7 +172,6 @@ def test_place_stone_for_remove2():
 
 def test_single_ko_cycle():
     game = Game(board_size=4)
-    game.reset()
     game.current_player = 2
 
     game.board = np.array([
@@ -228,7 +217,6 @@ def test_ko():
     game.make_move(0, 1)
     game.render()
     game = Game(board_size=6)
-    game.reset()
     game.current_player = 2
 
     game.board = np.array([
@@ -266,10 +254,33 @@ def test_ko():
     assert not game.is_valid_move(0, 1)
     print("循环劫测试通过")
 
+def test_banned_moves():
+    game = Game(board_size=4)
+    game.current_player = 2
+    data = """
+    x o . x
+    . x x .
+    . . . .
+    . . . .
+    """
+    game.parse(data)
+    assert not game.is_valid_move(0, 2)
+
+    game = Game(board_size=4)
+    game.current_player = 2
+    data = """
+     x o . x
+     . x . .
+     . . . .
+     . . . .
+     """
+    game.parse(data)
+    assert game.is_valid_move(0, 2)
+
+    print("禁止点测试通过")
 
 if __name__ == '__main__':
     # 运行测试用例
-    test_reset()
     test_is_valid_move()
     test_place_stone()
     test_pass_move()
@@ -280,3 +291,4 @@ if __name__ == '__main__':
     test_is_eye_pair()
     test_single_ko_cycle()
     test_ko()
+    test_banned_moves()

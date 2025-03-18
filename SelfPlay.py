@@ -9,6 +9,7 @@ from MCTS import Node, MCTS
 from SampleSet import SampleSet
 import time
 
+import gc
 
 def selfPlay(boardSize, tie_mu, numGames, num_processes,
              numSimulations, temperatureDefault, explorationFactor):
@@ -70,8 +71,18 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
             # print(actions)
             game.render()
 
-            mcts.root = node
+            # 重置跟节点，并清理其他分支内存
             node.parent = None
+            mcts.root.children.remove(node)
+
+            mcts.root.clear()
+            del mcts.root
+
+            mcts.root = node
+
+            ### 强制进行垃圾回收
+            gc.collect()
+
 
         winner = game.calculate_winner()
         Logger.info(f"本局胜方 玩家 {winner}")
@@ -86,7 +97,6 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
                 value = -1.0
             training_data.append((state, probs, value))
 
-    del onnx_model
     return training_data
 
 

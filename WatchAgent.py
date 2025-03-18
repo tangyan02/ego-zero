@@ -7,7 +7,6 @@ from GameUI import GameUI
 from MCTS import MCTS, Node
 
 game = Game(board_size=9)
-game.reset()
 game.render()
 gameUi = GameUI(board_size=9)
 

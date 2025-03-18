@@ -1,3 +1,4 @@
+import copy
 from math import sqrt
 
 import Network
@@ -51,6 +52,16 @@ class Node:
         """
         return len(self.children) == 0
 
+    def clear(self):
+        if self.children is not None:
+            for child in self.children:
+                child.clear()
+                del child
+        self.move = None
+        self.children = None
+        self.parent = None
+
+
 
 class MCTS:
     def __init__(self, model, exploration_constant=1.414):
@@ -66,9 +77,7 @@ class MCTS:
             self.root = Node()
 
         for i in range(iterations):
-            game_tmp = game.copy()
-            self.simulate(game_tmp)
-            del game_tmp
+            self.simulate(copy.deepcopy(game))
 
     def simulate(self, game):
         node = self.root
@@ -103,7 +112,6 @@ class MCTS:
 if __name__ == "__main__":
     # 测试代码
     game = Game(board_size=9)
-    game.reset()
     game.render()
 
     lr = 1e-3
