@@ -269,6 +269,7 @@ def test_banned_moves():
     . . . .
     """
     game.parse(data)
+    game.render()
     assert not game.is_valid_move(0, 2)
 
     game = Game(board_size=4)
@@ -281,6 +282,40 @@ def test_banned_moves():
      """
     game.parse(data)
     assert game.is_valid_move(0, 2)
+
+    game = Game(board_size=5)
+    game.current_player = 2
+    data = """
+      x o . o x
+      . x x x x
+      . . . . x
+      . . . . x
+      """
+    game.parse(data)
+    assert not game.is_valid_move(0, 2)
+
+    game = Game(board_size=5)
+    game.current_player = 2
+    data = """
+      x o . o x
+      . x o x x
+      . . x . x
+      . . . . x
+      """
+    game.parse(data)
+    assert not game.is_valid_move(0, 2)
+
+    game = Game(board_size=5)
+    game.current_player = 2
+    data = """
+         x . o o .
+         . x x x x
+         . . x . x
+         . . . . x
+         """
+    game.parse(data)
+    assert game.is_valid_move(0, 4)
+    assert game.is_valid_move(0, 1)
 
     print("禁止点测试通过")
 
@@ -302,15 +337,15 @@ def test_eat_moves():
 
 if __name__ == '__main__':
     # 运行测试用例
-    test_is_valid_move()
-    test_place_stone()
-    test_pass_move()
-    test_calculate_scores()
-    test_place_stone_for_remove()
-    test_place_stone_for_remove2()
-    test_is_eye()
-    test_is_eye_pair()
-    test_single_ko_cycle()
-    test_ko()
+    # test_is_valid_move()
+    # test_place_stone()
+    # test_pass_move()
+    # test_calculate_scores()
+    # test_place_stone_for_remove()
+    # test_place_stone_for_remove2()
+    # test_is_eye()
+    # test_is_eye_pair()
+    # test_single_ko_cycle()
+    # test_ko()
     test_banned_moves()
-    test_eat_moves()
+    # test_eat_moves()

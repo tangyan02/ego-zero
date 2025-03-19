@@ -341,19 +341,37 @@ class Game:
 
     def refresh_banned_moves(self):
         self.banned_moves = set()
+        visited = np.zeros((self.board_size, self.board_size), dtype=bool)
         for x in range(0, self.board_size):
             for y in range(0, self.board_size):
                 if self.board[x][y] == 0:
                     # 判断条件：周围没有气，且有对方棋子
                     blank_count, self_count, opp_count = self.count_cross(x, y, self.current_player, self.board)
-                    if blank_count == 0 and opp_count > 0:
-                        # 尝试填充，然后判断有没有气
-                        print("尝试填充")
+                    if blank_count == 0:
                         self.board[x][y] = self.current_player
-                        group, has_liberty = self.get_group(x, y, self.board.copy())
-                        self.board[x][y] = 0
-                        if not has_liberty:
+                        # 尝试填充，然后判断有没有气
+                        stack = [(x, y)]
+                        visited[x, y] = True
+                        qi_count = 0
+
+                        near_first_visit = True
+                        for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
+                            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                                if visited[nx, ny]:
+                                    near_first_visit = False
+
+                        while stack:
+                            cx, cy = stack.pop()
+                            for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
+                                if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                                    if self.board[nx, ny] == 0:
+                                        qi_count += 1
+                                    elif self.board[nx, ny] == self.current_player and not visited[nx, ny]:
+                                        visited[nx, ny] = True
+                                        stack.append((nx, ny))
+                        if qi_count == 0 and near_first_visit:
                             self.banned_moves.add((x, y))
+                        self.board[x][y] = 0
 
     def refresh_eat_moves(self):
         self.eat_moves = {}
