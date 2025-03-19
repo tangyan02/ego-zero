@@ -312,9 +312,9 @@ class Game:
             if 0 <= px < self.board_size and 0 <= py < self.board_size:
                 if board[px][py] == 0:
                     blank_count += 1
-                if board[px][py] == player:
+                elif board[px][py] == player:
                     self_count += 1
-                if board[px][py] == 3 - player:
+                elif board[px][py] == 3 - player:
                     opp_count += 1
         return blank_count, self_count, opp_count
 
@@ -348,6 +348,7 @@ class Game:
                     blank_count, self_count, opp_count = self.count_cross(x, y, self.current_player, self.board)
                     if blank_count == 0 and opp_count > 0:
                         # 尝试填充，然后判断有没有气
+                        print("尝试填充")
                         self.board[x][y] = self.current_player
                         group, has_liberty = self.get_group(x, y, self.board.copy())
                         self.board[x][y] = 0
@@ -391,16 +392,14 @@ class Game:
 if __name__ == "__main__":
     # 测试代码
     game = Game(board_size=19)
-    game.render()
-
     start_time = time.time()
     for i in range(1000):
         print(f"第 {i} 步")
         game.make_random_move()
         if game.end_game_check():
-            # game.render()
+            game.render()
             break
 
-        # game.render()
+        game.render()
 
     print(game.calculate_scores(), "cost", time.time() - start_time)
