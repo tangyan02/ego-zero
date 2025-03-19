@@ -1,4 +1,5 @@
 import random
+import time
 from time import sleep
 
 import numpy as np
@@ -142,11 +143,7 @@ class Game:
         """
         随机选择一个可落子的点落子
         """
-        print(f"当前玩家 {self.current_player}")
-        valid_moves = self.get_all_valid_moves()
-        if not valid_moves:
-            return False
-        # print(f"所有落子点 {valid_moves}")
+        valid_moves = self.get_all_valid_moves_include_pass()
         x, y = random.choice(valid_moves)
         return self.make_move(x, y)
 
@@ -396,15 +393,14 @@ if __name__ == "__main__":
     game = Game(board_size=19)
     game.render()
 
+    start_time = time.time()
     for i in range(1000):
         print(f"第 {i} 步")
-        if not game.make_random_move():
-            game.pass_move()
-
+        game.make_random_move()
         if game.end_game_check():
-            game.render()
+            # game.render()
             break
 
-        game.render()
+        # game.render()
 
-    print(game.calculate_scores())
+    print(game.calculate_scores(), "cost", time.time() - start_time)
