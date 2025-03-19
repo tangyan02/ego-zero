@@ -11,6 +11,9 @@ import time
 
 import gc
 
+def sub_log(num_processes, i_numGames, text):
+    Logger.info(f"进程{num_processes} 第{i_numGames}局 - {text} ")
+
 def selfPlay(boardSize, tie_mu, numGames, num_processes,
              numSimulations, temperatureDefault, explorationFactor):
     onnx_model = Network.load_onnx_model("model/model_latest_fp16.onnx")
@@ -36,7 +39,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
             needSearchCount = numSimulations - mcts.root.visits
 
-            Logger.info(f"进程 {num_processes}, 第 {i_numGames} 局, 模拟次数 {needSearchCount},  第 {step} 步")
+            sub_log(f"计划模拟次数 {needSearchCount},  第 {step} 步")
             mcts.search(game, needSearchCount)
 
             # 步骤 1: 提取 visit 的数值
@@ -61,7 +64,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
             actions.append((Network.get_state(game), game.current_player, probs_matrix))
 
             end_time = time.time()
-            Logger.info(
+            sub_log(
                 f"玩家 {game.current_player}, 落子  {node.move},  访问次数 {node.visits} "
                 f", 速度 {round(needSearchCount / (end_time - start_time), 1)} 次/秒")
             game.make_move(node.move[0], node.move[1])
@@ -85,7 +88,7 @@ def selfPlay(boardSize, tie_mu, numGames, num_processes,
 
 
         winner = game.calculate_winner()
-        Logger.info(f"本局胜方 玩家 {winner}")
+        sub_log(f"本局胜方 玩家 {winner}")
 
         game.render()
 
