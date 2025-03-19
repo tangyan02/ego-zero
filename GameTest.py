@@ -145,14 +145,14 @@ def test_place_stone_for_remove():
         [0, 1, 0],
         [2, 0, 1]
     ])
+    game.refresh_eat_moves()
     assert game.make_move(0, 1)
-    assert game.make_move(1, 2)
-    assert game.make_move(1, 0)
-    assert game.make_move(1, 2)
-    assert game.make_move(1, 2)
-    assert game.make_move(2, 0)
-    print()
     game.render()
+    assert game.make_move(1, 0)
+    game.render()
+    assert game.make_move(1, 2)
+    game.render()
+    assert game.board[0, 2] == 0
     print("测试落子后吃子通过")
 
 
@@ -164,9 +164,13 @@ def test_place_stone_for_remove2():
         [2, 0, 2],
         [1, 2, 1]
     ])
-    assert game.make_move(1, 1)
-    print()
+    game.refresh_eat_moves()
+    game.make_move(1, 1)
     game.render()
+    assert game.board[0, 1] == 0
+    assert game.board[1, 0] == 0
+    assert game.board[1, 2] == 0
+    assert game.board[2, 1] == 0
     print("测试落子后吃子2通过")
 
 
@@ -254,6 +258,7 @@ def test_ko():
     assert not game.is_valid_move(0, 1)
     print("循环劫测试通过")
 
+
 def test_banned_moves():
     game = Game(board_size=4)
     game.current_player = 2
@@ -279,6 +284,22 @@ def test_banned_moves():
 
     print("禁止点测试通过")
 
+
+def test_eat_moves():
+    game = Game(board_size=4)
+    game.current_player = 1
+    data = """
+     x o . x
+     . x o o
+     . . x o
+     . . x o
+     """
+    game.parse(data)
+    assert len(game.eat_moves[0, 2]) == 5
+
+    print("打吃点测试通过")
+
+
 if __name__ == '__main__':
     # 运行测试用例
     test_is_valid_move()
@@ -292,3 +313,4 @@ if __name__ == '__main__':
     test_single_ko_cycle()
     test_ko()
     test_banned_moves()
+    test_eat_moves()

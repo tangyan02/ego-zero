@@ -44,6 +44,7 @@ class Game:
             y = 0
             x += 1
         self.refresh_banned_moves()
+        self.refresh_eat_moves()
 
     def is_valid_move(self, x, y):
         if x < 0 or x >= self.board_size or y < 0 or y >= self.board_size:
@@ -51,29 +52,20 @@ class Game:
         if self.board[x, y] != 0:
             return False
 
+        # 检查落子后己方棋块是否有气
+        if (x, y) in self.banned_moves:
+            return False
+
         # 临时落子
         temp_board = self.board.copy()
         temp_board[x, y] = self.current_player
 
         # 检查并移除对手的死子
-        opponent = 3 - self.current_player
-        dead_stones = []
-        for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
-            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
-                if temp_board[nx, ny] == opponent:
-                    group, has_liberty = self.get_group(nx, ny, temp_board)
-                    if not has_liberty:
-                        dead_stones.extend(group)
+        if self.eat_moves.get((x, y)) is not None:
+            for dx, dy in self.eat_moves[x, y]:
+                temp_board[dx, dy] = 0
 
-        for dx, dy in dead_stones:
-            temp_board[dx, dy] = 0
-
-        # 检查落子后己方棋块是否有气
-        if (x, y) in self.banned_moves:
-            return False
-
-        # 检查劫循环
-        if len(dead_stones) > 0:
+            # 检查劫循环
             for idx, (his_x, his_y) in enumerate(self.move_history):
                 if x == his_x and y == his_y:
                     if np.array_equal(temp_board, self.history[idx]):
@@ -98,16 +90,9 @@ class Game:
 
         # 检查并移除对手的死子
         opponent = 3 - self.current_player
-        dead_stones = []
-        for nx, ny in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]:
-            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
-                if self.board[nx, ny] == opponent:
-                    group, has_liberty = self.get_group(nx, ny)
-                    if not has_liberty:
-                        dead_stones.extend(group)
-
-        for dx, dy in dead_stones:
-            self.board[dx, dy] = 0
+        if self.eat_moves.get((x, y)) is not None:
+            for dx, dy in self.eat_moves[x, y]:
+                self.board[dx, dy] = 0
 
         self.history.append(self.board.copy())
         # 检查历史记录的长度是否超过 8
@@ -124,8 +109,9 @@ class Game:
         self.current_player = opponent
         self.pass_count = 0  # 落子后重置 pass 计数
 
-        # 更新禁止点
+        # 更新禁止点和打吃点
         self.refresh_banned_moves()
+        self.refresh_eat_moves()
         return True
 
     def get_all_valid_moves(self):
@@ -370,6 +356,34 @@ class Game:
                         self.board[x][y] = 0
                         if not has_liberty:
                             self.banned_moves.add((x, y))
+
+    def refresh_eat_moves(self):
+        self.eat_moves = {}
+        visited = np.zeros((self.board_size, self.board_size), dtype=bool)
+        for x in range(0, self.board_size):
+            for y in range(0, self.board_size):
+                if self.board[x][y] == 3 - self.current_player and not visited[x][y]:
+                    stack = [(x, y)]
+                    visited[x, y] = True
+                    group = []
+                    qi_count = 0
+                    qi_move = None
+                    while stack:
+                        cx, cy = stack.pop()
+                        group.append((cx, cy))
+                        for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
+                            if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
+                                if self.board[nx, ny] == 0:
+                                    qi_count += 1
+                                    qi_move = (nx, ny)
+                                elif self.board[nx, ny] == 3 - self.current_player and not visited[nx, ny]:
+                                    visited[nx, ny] = True
+                                    stack.append((nx, ny))
+                    if qi_count == 1:
+                        if self.eat_moves.get(qi_move) is not None:
+                            self.eat_moves[qi_move].extend(group)
+                        else:
+                            self.eat_moves[qi_move] = group
 
     def render(self):
         for row in self.board:
