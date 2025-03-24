@@ -1,6 +1,5 @@
 import random
 import time
-from time import sleep
 
 import numpy as np
 

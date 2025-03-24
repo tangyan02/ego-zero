@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 import Logger
 from SampleSet import SampleSet
 # 定义训练数据集类
-from Utils import getTimeStr
 
 
 def train(extended_data, network, device, optimizer, batch_size, i_episode):

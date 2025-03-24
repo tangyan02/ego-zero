@@ -1,5 +1,3 @@
-import time
-
 import Network
 import Utils
 from Game import Game
