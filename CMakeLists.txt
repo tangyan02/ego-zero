@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-project(ego-gomoku-zero)
+project(ego-zero)
 
 if (WIN32)
     string(APPEND CMAKE_CXX_FLAGS " /W4")
@@ -72,7 +72,7 @@ endfunction()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3 -funroll-loops -ftree-vectorize -finline-functions -std=c++17")
 
-add_executable(ego-zero SelfPlay.cpp Game.h Game.cpp MCTS.h MCTS.cpp SelfPlay.h Main.cpp Analyzer.cpp Analyzer.h AnalyzerTest.cpp AnalyzerTest.h Piskvork.cpp Pisqpipe.h Pisqpipe.cpp GameTest.cpp GameTest.h Utils.cpp Utils.h Shape.cpp Shape.h ShapeTest.cpp ShapeTest.h Model.cpp Model.h Pruner.cpp Pruner.h)
+add_executable(ego-zero Main.cpp)
 set_property(TARGET ego-zero PROPERTY CXX_STANDARD 17)
 
 # ONNX
@@ -83,11 +83,3 @@ find_library(MY_LIBRARY
 # 链接第三方静态库到你的目标
 target_link_libraries(ego-zero ${MY_LIBRARY})
 
-# TENSORRT
-#if(DEFINED ENV{TENSORRT_ROOTDIR})
-#    message(STATUS "TENSORRT_ROOTDIR environment variable set $ENV{TENSORRT_ROOTDIR}")
-#    find_library(TENSORRT_LIBRARY
-#            NAMES nvinfer nvcaffe_parser nvinfer_dispatch nvinfer_lean nvinfer_plugin nvinfer_vc_plugin nvparsers onnx_proto
-#            PATHS $ENV{TENSORRT_ROOTDIR}/lib)
-#    target_link_libraries(ego-gomoku-zero ${TENSORRT_LIBRARY})
-#endif()
