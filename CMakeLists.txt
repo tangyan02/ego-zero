@@ -17,9 +17,9 @@ include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 17)
 
-if(NOT DEFINED ENV{ONNXRUNTIME_ROOTDIR})
+if (NOT DEFINED ENV{ONNXRUNTIME_ROOTDIR})
     message(FATAL_ERROR "ONNXRUNTIME_ROOTDIR environment variable is not set.")
-endif()
+endif ()
 
 set(ONNXRUNTIME_ROOTDIR $ENV{ONNXRUNTIME_ROOTDIR})
 
@@ -61,7 +61,7 @@ endif ()
 # Windows might have an onnxruntime.dll in the system directory so it's more robust to manually copy the dlls to
 # the output dir. Define a function to do so. This is called from the cmake file in the subdirectories.
 function(copy_ort_dlls target_name)
-if (MSVC)
+    if (MSVC)
         file(GLOB ORT_DLLS ${ONNXRUNTIME_ROOTDIR}/lib/*.dll)
         foreach (ORT_DLL ${ORT_DLLS})
             add_custom_command(TARGET ${target_name} POST_BUILD
@@ -72,7 +72,7 @@ endfunction()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3 -funroll-loops -ftree-vectorize -finline-functions -std=c++17")
 
-add_executable(ego-zero Main.cpp)
+add_executable(ego-zero Main.cpp Game.h Game.cpp)
 set_property(TARGET ego-zero PROPERTY CXX_STANDARD 17)
 
 # ONNX
