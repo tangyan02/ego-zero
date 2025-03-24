@@ -197,29 +197,6 @@ class Game:
 
         return black_score, white_score
 
-    def get_group(self, x, y, board=None):
-        if board is None:
-            board = self.board
-        player = board[x, y]
-        group = []
-        has_liberty = False
-        visited = np.zeros((self.board_size, self.board_size), dtype=bool)
-        stack = [(x, y)]
-        visited[x, y] = True
-
-        while stack:
-            cx, cy = stack.pop()
-            group.append((cx, cy))
-            for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
-                if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
-                    if board[nx, ny] == 0:
-                        has_liberty = True
-                    elif board[nx, ny] == player and not visited[nx, ny]:
-                        visited[nx, ny] = True
-                        stack.append((nx, ny))
-
-        return group, has_liberty
-
     def is_eye_pair(self, x, y, player, board=None):
         """
         判断相邻的眼位
