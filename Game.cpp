@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <stack>
 
 Point::Point() {
     this->x = -1;
@@ -23,6 +24,14 @@ bool Board::eq(Board &board, int size) {
         }
     }
     return true;
+}
+
+void Board::loadData(vector<vector<int> > data) {
+    for (int i = 0; i < data.size(); i++) {
+        for (int j = 0; j < data[i].size(); j++) {
+            this->board[i][j] = data[i][j];
+        }
+    }
 }
 
 pair<int, int> Game::countAround(int x, int y) {
@@ -71,12 +80,15 @@ tuple<int, int, int> Game::countCross(int x, int y) {
     return make_tuple(blank_count, self_count, opp_count);
 }
 
-bool Game::isCrossEye(int x, int y) {
+bool Game::isCrossEye(int x, int y, int player) {
+    if (player == 0) {
+        player = currentPlayer;
+    }
     for (int i = 0; i < 4; i++) {
         int px = x + crossDx[i];
         int py = y + crossDy[i];
         if (px >= 0 && px < boardSize && py >= 0 && py < boardSize) {
-            if (board.board[px][py] != currentPlayer)
+            if (board.board[px][py] != player)
                 return false;
         }
     }
@@ -207,5 +219,98 @@ void Game::render() {
                 cout << ". ";
         }
         cout << endl;
+    }
+}
+
+void Game::passMove() {
+    pass_count += 1;
+    currentPlayer = 3 - currentPlayer;
+}
+
+bool Game::endGameCheck() {
+    return pass_count >= 2;
+}
+
+pair<int, int> Game::calculateScore() {
+    int black_score = 0;
+    int white_score = 0;
+
+    for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+            if (board.board[i][j] == BLACK)
+                black_score += 1;
+            if (board.board[i][j] == WHITE)
+                white_score += 1;
+            if (board.board[i][j] == NONE_P) {
+                if (isCrossEye(i, j, BLACK))
+                    black_score += 1;
+                if (isCrossEye(i, j, WHITE))
+                    white_score += 1;
+            }
+        }
+    }
+
+    black_score -= tieMu;
+    white_score += tieMu;
+
+    return make_pair(black_score, white_score);
+}
+
+void Game::refreshBannedMoves() {
+    bannedMoves.clear();
+    bool visited[MAX_BOARD_SIZE][MAX_BOARD_SIZE] = {false};
+
+    for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+            if (board.board[i][j] == NONE_P) {
+                auto tuple_around = countCross(i, j);
+                int blank_count = get<0>(tuple_around);
+                // 判断条件：周围没有气，且有对方棋子
+                if (blank_count == 0) {
+                    cout << i << " " << j << endl;
+                    board.board[i][j] = currentPlayer;
+                    // 尝试填充，然后判断有没有气
+                    stack<pair<int, int> > stk;
+                    stk.emplace(i, j);
+                    int qiCount = 0;
+
+                    bool near_first_visit = true;
+                    for (int k = 0; k < 4; k++) {
+                        int px = i + crossDx[k];
+                        int py = j + crossDy[k];
+                        if (isOnSide(px, py)) {
+                            if (visited[px][py])
+                                near_first_visit = false;
+                        }
+                    }
+
+                    cout << "near_first_visit " << near_first_visit << endl;
+                    while (!stk.empty()) {
+                        pair<int, int> top = stk.top();
+                        stk.pop();
+                        int cx = top.first;
+                        int cy = top.second;
+                        for (int k = 0; k < 4; k++) {
+                            int px = cx + crossDx[k];
+                            int py = cy + crossDy[k];
+                            if (isOnSide(px, py)) {
+                                if (board.board[px][py] == NONE_P) {
+                                    qiCount += 1;
+                                } else if (board.board[px][py] == currentPlayer && !visited[px][py]) {
+                                    visited[px][py] = true;
+                                    stk.emplace(px, py);
+                                }
+                            }
+                        }
+                    }
+                    cout << "qiCount " << qiCount << endl;
+                    if (qiCount == 0 && near_first_visit) {
+                        auto p = Point(i, j);
+                        bannedMoves.emplace_back(p);
+                    }
+                    board.board[i][j] = NONE_P;
+                }
+            }
+        }
     }
 }

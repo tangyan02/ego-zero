@@ -1,11 +1,12 @@
+#define DOCTEST_CONFIG_IMPLEMENT
+
 #include <iostream>
 #include "Game.h"
+#include "test/TestAssistant.cpp"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    cout << "Hello World!" << endl;
-    Game game(19, 3.5);
-    game.render();
+    return startTest(argc, argv);
     return 0;
 }
