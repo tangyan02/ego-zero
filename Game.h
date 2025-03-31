@@ -87,6 +87,12 @@ public:
 
     void refreshBannedMoves();
 
+    //待测试
+    void refreshEatMoves();
+
+    //待补充
+    void makeMove(int x, int y);
+
 };
 
 
