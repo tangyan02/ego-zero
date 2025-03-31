@@ -149,38 +149,41 @@ TEST_CASE("banned_moves") {
     game.refreshBannedMoves();
     CHECK(game.isValidMove(0,2));
 
-    //
-    // game = Game(board_size=5)
-    // game.current_player = 2
-    // data = """
-    //   x o . o x
-    //   . x x x x
-    //   . . . . x
-    //   . . . . x
-    //   """
-    // game.parse(data)
-    // assert not game.is_valid_move(0, 2)
-    //
-    // game = Game(board_size=5)
-    // game.current_player = 2
-    // data = """
-    //   x o . o x
-    //   . x o x x
-    //   . . x . x
-    //   . . . . x
-    //   """
-    // game.parse(data)
-    // assert not game.is_valid_move(0, 2)
-    //
-    // game = Game(board_size=5)
-    // game.current_player = 2
-    // data = """
-    //      x . o o .
-    //      . x x x x
-    //      . . x . x
-    //      . . . . x
-    //      """
-    // game.parse(data)
-    // assert game.is_valid_move(0, 4)
-    // assert game.is_valid_move(0, 1)
+    game.boardSize = 5;
+    data = {
+        {1, 2, 0, 2, 1},
+        {0, 1, 1, 1, 1},
+        {0, 0, 0, 0, 1},
+        {0, 0, 0, 0, 1},
+        {0, 0, 0, 0, 1}
+    };
+    game.board.loadData(data);
+    game.currentPlayer = WHITE;
+    game.refreshBannedMoves();
+    CHECK(!game.isValidMove(0,2));
+
+    data = {
+        {1, 2, 0, 2, 1},
+        {0, 1, 2, 1, 1},
+        {0, 0, 1, 0, 1},
+        {0, 0, 0, 0, 1},
+        {0, 0, 0, 0, 1}
+    };
+    game.board.loadData(data);
+    game.currentPlayer = WHITE;
+    game.refreshBannedMoves();
+    CHECK(!game.isValidMove(0,2));
+
+    data = {
+        {1, 0, 2, 2, 0},
+        {0, 1, 2, 1, 1},
+        {0, 0, 1, 0, 1},
+        {0, 0, 0, 0, 1},
+        {0, 0, 0, 0, 1}
+    };
+    game.board.loadData(data);
+    game.currentPlayer = WHITE;
+    game.refreshBannedMoves();
+    CHECK(game.isValidMove(0,4));
+    CHECK(game.isValidMove(0,1));
 }
