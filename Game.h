@@ -7,6 +7,7 @@
 #include <algorithm>
 
 const int MAX_BOARD_SIZE = 19;
+const int MAX_HISTORY_SIZE = 8;
 
 #define NONE_P 0
 #define BLACK 1
@@ -24,6 +25,16 @@ public:
     Point(int x, int y);
 
     bool isNull();
+
+    bool operator==(const Point& other) const {
+        return x == other.x && y == other.y;
+    }
+};
+
+struct PointHash {
+    size_t operator()(const Point &p) const {
+        return std::hash<int>()(p.x) ^ (std::hash<int>()(p.y) << 1);
+    }
 };
 
 
@@ -39,11 +50,9 @@ public:
 class Game {
     vector<Point> historyMoves;
     vector<Board> history;
-    vector<pair<Point, vector<Point> > > eatMoves;
 
 
     int pass_count;
-    int history_max_size;
 
 
     int crossDx[4] = {1, 0, -1, 0};
@@ -62,6 +71,7 @@ public:
     int tieMu;
     int currentPlayer;
     vector<Point> bannedMoves;
+    unordered_map<Point, vector<Point>, PointHash> eatMoves;
 
     bool isCrossEye(int x, int y, int player = 0);
 
@@ -92,7 +102,6 @@ public:
 
     //待补充
     void makeMove(int x, int y);
-
 };
 
 

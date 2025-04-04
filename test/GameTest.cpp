@@ -132,9 +132,9 @@ TEST_CASE("banned_moves") {
     game.board.loadData(data);
     game.currentPlayer = WHITE;
     game.refreshBannedMoves();
-    cout << "banned_moves" << endl;
-    for (auto banned_move: game.bannedMoves)
-        cout << banned_move.x << " " << banned_move.y << endl;
+    // cout << "banned_moves" << endl;
+    // for (auto banned_move: game.bannedMoves)
+    //     cout << banned_move.x << " " << banned_move.y << endl;
 
     CHECK(!game.isValidMove(0,2));
 
@@ -186,4 +186,105 @@ TEST_CASE("banned_moves") {
     game.refreshBannedMoves();
     CHECK(game.isValidMove(0,4));
     CHECK(game.isValidMove(0,1));
+}
+
+TEST_CASE("make_move") {
+    Game game(3);
+    vector<vector<int> > data = {
+        {1, 1, 2},
+        {0, 1, 0},
+        {2, 0, 1}
+    };
+    game.board.loadData(data);
+    game.refreshEatMoves();
+
+
+    CHECK(game.eatMoves.size()==1);
+
+
+    data = {
+        {1, 0, 2},
+        {0, 1, 0},
+        {2, 0, 1}
+    };
+    game.board.loadData(data);
+    game.refreshEatMoves();
+
+    game.makeMove(0, 1);
+    game.makeMove(1, 0);
+    game.makeMove(1, 2);
+    // game.render();
+
+    CHECK(game.board.board[0][2] == NONE_P);
+
+    data = {
+        {1, 2, 1},
+        {2, 0, 2},
+        {1, 2, 1}
+    };
+    game.board.loadData(data);
+    game.currentPlayer = BLACK;
+    game.refreshEatMoves();
+    game.makeMove(1, 1);
+    // game.render();
+
+    CHECK(game.board.board[0][1] == NONE_P);
+    CHECK(game.board.board[1][0] == NONE_P);
+    CHECK(game.board.board[1][2] == NONE_P);
+    CHECK(game.board.board[2][1] == NONE_P);
+
+    game = Game(4);
+    data = {
+        {1, 2, 0, 1},
+        {0, 1, 2, 2},
+        {0, 0, 1, 2},
+        {0, 0, 1, 2}
+    };
+    game.board.loadData(data);
+    game.refreshEatMoves();
+
+    CHECK(game.eatMoves[Point(0,2)].size()==5);
+}
+
+
+TEST_CASE("test_ko") {
+    Game game = Game(4);
+    vector<vector<int> > data = {
+        {2, 0, 0, 1},
+        {0, 2, 1, 0},
+        {0, 2, 1, 0},
+        {2, 1, 0, 1}
+    };
+    game.board.loadData(data);
+    game.refreshEatMoves();
+    game.refreshBannedMoves();
+    game.currentPlayer = WHITE;
+
+    game.makeMove(0, 2);
+    game.makeMove(0, 1);
+    CHECK(!game.isValidMove(0,2));
+
+    game = Game(6);
+    data = {
+        {2, 0, 0, 1, 0, 0},
+        {0, 2, 1, 0, 0, 2},
+        {0, 0, 0, 0, 2, 0},
+        {0, 0, 0, 0, 1, 2},
+        {0, 2, 1, 0, 0, 1},
+        {2, 1, 0, 1, 0, 0}
+    };
+    game.board.loadData(data);
+    game.refreshEatMoves();
+    game.refreshBannedMoves();
+    game.currentPlayer = WHITE;
+
+    game.makeMove(0, 2);
+    game.makeMove(0, 1);
+    game.makeMove(5, 2);
+    game.makeMove(2, 5);
+    game.makeMove(0, 2);
+    game.makeMove(5, 1);
+    game.makeMove(3, 5);
+
+    CHECK(!game.isValidMove(0,1));
 }

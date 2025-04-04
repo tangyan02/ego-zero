@@ -174,6 +174,7 @@ bool Game::isValidMove(int x, int y) {
     tmpBoard.board[x][y] = currentPlayer;
 
     //检查并移除对手死子
+
     for (auto eat_move: eatMoves) {
         Point eatPoint = eat_move.first;
         if (eatPoint.x == x && eatPoint.y == y) {
@@ -267,7 +268,7 @@ void Game::refreshBannedMoves() {
                 int blank_count = get<0>(tuple_around);
                 // 判断条件：周围没有气，且有对方棋子
                 if (blank_count == 0) {
-                    cout << i << " " << j << endl;
+                    // cout << i << " " << j << endl;
                     board.board[i][j] = currentPlayer;
                     // 尝试填充，然后判断有没有气
                     stack<Point> stk;
@@ -278,7 +279,7 @@ void Game::refreshBannedMoves() {
                     for (int k = 0; k < 4; k++) {
                         int px = i + crossDx[k];
                         int py = j + crossDy[k];
-                        if (isOnSide(px, py)) {
+                        if (isOnBoard(px, py)) {
                             if (visited[px][py])
                                 near_first_visit = false;
                         }
@@ -293,7 +294,7 @@ void Game::refreshBannedMoves() {
                         for (int k = 0; k < 4; k++) {
                             int px = cx + crossDx[k];
                             int py = cy + crossDy[k];
-                            if (isOnSide(px, py)) {
+                            if (isOnBoard(px, py)) {
                                 if (board.board[px][py] == NONE_P) {
                                     qiCount += 1;
                                 } else if (board.board[px][py] == currentPlayer && !visited[px][py]) {
@@ -323,6 +324,7 @@ void Game::refreshEatMoves() {
             if (board.board[i][j] == 3 - currentPlayer && !visited[i][j]) {
                 stack<Point> stk;
                 stk.emplace(i, j);
+                visited[i][j] = true;
                 int qiCount = 0;
                 vector<Point> group;
                 Point qiMove;
@@ -335,7 +337,7 @@ void Game::refreshEatMoves() {
                     for (int k = 0; k < 4; k++) {
                         int px = cx + crossDx[k];
                         int py = cy + crossDy[k];
-                        if (isOnSide(px, py)) {
+                        if (isOnBoard(px, py)) {
                             if (board.board[px][py] == NONE_P) {
                                 qiCount += 1;
                                 qiMove = Point(px, py);
@@ -347,19 +349,10 @@ void Game::refreshEatMoves() {
                     }
                 }
                 if (qiCount == 1) {
-                    bool existFlag = false;
-                    for (auto eat_move_pair: eatMoves) {
-                        Point eatMove = eat_move_pair.first;
-                        if (eatMove.x == qiMove.x && eatMove.y == qiMove.y) {
-                            existFlag = true;
-                            for (auto point: group) {
-                                Point p = point;
-                                eat_move_pair.second.emplace_back(p);
-                            }
-                        }
-                    }
-                    if (!existFlag) {
-                        eatMoves.emplace_back(qiMove, group);
+                    if (eatMoves.find(qiMove) != eatMoves.end()) {
+                        eatMoves.at(qiMove).insert(eatMoves.at(qiMove).end(), group.begin(), group.end());
+                    } else {
+                        eatMoves[qiMove] = group;
                     }
                 }
             }
@@ -407,10 +400,42 @@ void Game::makeMove(int x, int y) {
         return;
     }
 
-    if (!isValidMove(x, y)) {
-        return;
+    board.board[x][y] = currentPlayer;
+
+    //检查并移除对手死子
+    if (eatMoves.find(Point(x, y)) != eatMoves.end()) {
+        const auto deadPoints = eatMoves.at(Point(x, y));
+        for (const auto deadPoint: deadPoints) {
+            board.board[deadPoint.x][deadPoint.y] = 0;
+        }
     }
 
+    //记录历史
+    Board boardTmp;
+    for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+            boardTmp.board[i][j] = this->board.board[i][j];
+        }
+    }
+    history.emplace_back(boardTmp);
+
+    //检查历史长度是否超过8，如果超过则截取
+    if (history.size() > MAX_HISTORY_SIZE) {
+        history.erase(history.begin());
+    }
+
+    //更新落子历史
+    historyMoves.emplace_back(x, y);
+    if (historyMoves.size() > MAX_HISTORY_SIZE) {
+        historyMoves.erase(historyMoves.begin());
+    }
+
+    currentPlayer = 3 - currentPlayer;
+    pass_count = 0;
+
+    //更新禁止点和打吃点
+    refreshBannedMoves();
+    refreshEatMoves();
 
     // if x == -1 and y == -1:
     //       self.pass_move()
