@@ -72,7 +72,7 @@ endfunction()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -O3 -funroll-loops -ftree-vectorize -finline-functions -std=c++17")
 
-add_executable(ego-zero Main.cpp Game.h Game.cpp)
+add_executable(ego-zero Main.cpp Game.h Game.cpp Model.h Model.cpp)
 set_property(TARGET ego-zero PROPERTY CXX_STANDARD 17)
 
 # ONNX

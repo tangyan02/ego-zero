@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "Game.h"
+#include "Model.h"
 #include "test/TestAssistant.cpp"
 
 using namespace std;
