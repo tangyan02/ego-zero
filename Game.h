@@ -49,8 +49,6 @@ public:
 
 class Game {
     vector<Point> historyMoves;
-    vector<Board> history;
-
 
     int pass_count;
 
@@ -71,6 +69,8 @@ public:
     int tieMu;
     int currentPlayer;
     vector<Point> bannedMoves;
+    vector<Board> history;
+
     unordered_map<Point, vector<Point>, PointHash> eatMoves;
 
     bool isCrossEye(int x, int y, int player = 0);

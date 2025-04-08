@@ -358,33 +358,6 @@ void Game::refreshEatMoves() {
             }
         }
     }
-    // def refresh_eat_moves(self):
-    //  self.eat_moves = {}
-    // visited = np.zeros((self.board_size, self.board_size), dtype=bool)
-    // for x in range(0, self.board_size):
-    //     for y in range(0, self.board_size):
-    //         if self.board[x][y] == 3 - self.current_player and not visited[x][y]:
-    //             stack = [(x, y)]
-    //             visited[x, y] = True
-    //             group = []
-    //             qi_count = 0
-    //             qi_move = None
-    //             while stack:
-    //                 cx, cy = stack.pop()
-    //                 group.append((cx, cy))
-    //                 for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
-    //                     if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
-    //                         if self.board[nx, ny] == 0:
-    //                             qi_count += 1
-    //                             qi_move = (nx, ny)
-    //                         elif self.board[nx, ny] == 3 - self.current_player and not visited[nx, ny]:
-    //                             visited[nx, ny] = True
-    //                             stack.append((nx, ny))
-    //             if qi_count == 1:
-    //                 if self.eat_moves.get(qi_move) is not None:
-    //                     self.eat_moves[qi_move].extend(group)
-    //                 else:
-    //                     self.eat_moves[qi_move] = group
 }
 
 void Game::makeMove(int x, int y) {
@@ -436,40 +409,4 @@ void Game::makeMove(int x, int y) {
     //更新禁止点和打吃点
     refreshBannedMoves();
     refreshEatMoves();
-
-    // if x == -1 and y == -1:
-    //       self.pass_move()
-    //       self.history.append(self.board.copy())
-    //       return True
-    //
-    //   # if not self.is_valid_move(x, y):
-    //   #     return False
-    //   self.board[x, y] = self.current_player
-    //   # print(f"玩家 {self.current_player} 落子 {x}, {y}")
-    //
-    //   # 检查并移除对手的死子
-    //   opponent = 3 - self.current_player
-    //   if self.eat_moves.get((x, y)) is not None:
-    //       for dx, dy in self.eat_moves[x, y]:
-    //           self.board[dx, dy] = 0
-    //
-    //   self.history.append(self.board.copy())
-    //   # 检查历史记录的长度是否超过 8
-    //   if len(self.history) > self.history_max_size:
-    //       # 截取掉早期的数据，只保留最新的 8 个元素
-    //       self.history = self.history[-self.history_max_size:]
-    //
-    //   # 更新落子的历史
-    //   self.move_history.append((x, y))
-    //   if len(self.move_history) > self.history_max_size:
-    //       # 截取掉早期的数据，只保留最新的 8 个元素
-    //       self.move_history = self.move_history[-self.history_max_size:]
-    //
-    //   self.current_player = opponent
-    //   self.pass_count = 0  # 落子后重置 pass 计数
-    //
-    //   # 更新禁止点和打吃点
-    //   self.refresh_banned_moves()
-    //   self.refresh_eat_moves()
-    //   return True
 }

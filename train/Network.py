@@ -128,7 +128,7 @@ def save_model(model, optimizer, boardSize, fp16=False):
 
     # 导出onnx
     model.eval()
-    example = torch.randn(1, model.input_channels, boardSize, boardSize, requires_grad=True,
+    example = torch.randn(model.input_channels, boardSize, boardSize, requires_grad=True,
                           device=next(model.parameters()).device)
     torch.onnx.export(model,
                       (example),
@@ -213,8 +213,6 @@ def evaluate_state_onnx(onnx_model, input):
     # 获取输入名称
     input_tensor = torch.from_numpy(input).float()
     input_name = onnx_model.get_inputs()[0].name
-    if input_tensor.dim() == 3:
-        input_tensor = input_tensor.unsqueeze(0)
 
     # 将输入张量的精度转换为 fp16
     input_tensor = input_tensor.half()

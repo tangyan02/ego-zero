@@ -1,4 +1,5 @@
 #include "doctest.h"
+#include "ModelTest.cpp"
 #include "GameTest.cpp"
 
 int startTest(int argc, char *argv[]) {

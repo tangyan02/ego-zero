@@ -19,7 +19,7 @@ public:
 
     pair<float, vector<float> > evaluate_state(vector<vector<vector<float> > > &state);
 
-    vector<vector<vector<float> > > get_state(Game &game);
+    static vector<vector<vector<float> > > get_state(Game &game);
 
 private:
     Ort::Env *env;

@@ -105,6 +105,74 @@ std::pair<float, std::vector<float> > Model::evaluate_state(vector<vector<vector
 }
 
 vector<vector<vector<float> > > Model::get_state(Game &game) {
-    vector<vector<vector<float> > >  result;
+    int limit = 8;
+    vector result(limit * 2 + 1, vector(game.boardSize, vector(game.boardSize, 0.0f)));;
+
+    int k = 0;
+    for (int i = game.history.size() - 1; i >= 0; i--) {
+        auto board = game.history[i];
+        for (int x = 0; x < game.boardSize; x++) {
+            for (int y = 0; y < game.boardSize; y++) {
+                if (board.board[x][y] == game.currentPlayer) {
+                    result[k][x][y] = 1;
+                }
+            }
+        }
+        k++;
+    }
+
+    k = limit;
+    for (int i = game.history.size() - 1; i >= 0; i--) {
+        auto board = game.history[i];
+        for (int x = 0; x < game.boardSize; x++) {
+            for (int y = 0; y < game.boardSize; y++) {
+                if (board.board[x][y] == 3 - game.currentPlayer) {
+                    result[k][x][y] = 1;
+                }
+            }
+        }
+        k++;
+    }
+
+    k = limit * 2;
+    if (game.currentPlayer == 1) {
+        for (int x = 0; x < game.boardSize; x++) {
+            for (int y = 0; y < game.boardSize; y++) {
+                result[k][x][y] = 1;
+            }
+        }
+    }
+
+    return result;
+    //   limit = 8
+    // # 直接创建 NumPy 数组
+    // numpy_array = np.zeros((limit * 2 + 1, game.board_size, game.board_size))
+    // k = 0
+    // for board in game.history[-limit:][::-1]:
+    //     for x in range(game.board_size):
+    //         for y in range(game.board_size):
+    //             if board[x][y] == game.current_player:
+    //                 numpy_array[k, x, y] = 1
+    //             else:
+    //                 numpy_array[k, x, y] = 0
+    //     k = k + 1
+    //
+    // k = limit
+    // for board in game.history[-limit:][::-1]:
+    //     for x in range(game.board_size):
+    //         for y in range(game.board_size):
+    //             if board[x][y] == 3 - game.current_player:
+    //                 numpy_array[k, x, y] = 1
+    //             else:
+    //                 numpy_array[k, x, y] = 0
+    //     k = k + 1
+    //
+    // # 判断自己是先还是后
+    // if game.current_player == 1:
+    //     for x in range(game.board_size):
+    //         for y in range(game.board_size):
+    //             numpy_array[k, x, y] = 1
+    //
+    // return numpy_array
     return result;
 }
