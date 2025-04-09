@@ -7,9 +7,7 @@ TEST_CASE("is_valid_move") {
 
     auto state = Model::get_state(game);
     auto result = model.evaluate_state(state);
-    cout << result.first;
-    for (int i = 0; i < result.second.size(); i++) {
-        cout << result.second[i] << " ";
-    }
-
+    CHECK(result.second.size() == 19*19);
+    CHECK(result.second[0] >= 0);
+    CHECK(result.first >= -1);
 }
