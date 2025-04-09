@@ -410,3 +410,25 @@ void Game::makeMove(int x, int y) {
     refreshBannedMoves();
     refreshEatMoves();
 }
+
+vector<Point> Game::getMoves() {
+    vector<Point> valid_moves;
+    for (int x = 0; x < boardSize; x++) {
+        for (int y = 0; y < boardSize; y++) {
+            if (isValidMove(x, y)) {
+                valid_moves.emplace_back(x, y);
+            }
+        }
+    }
+    if (pass_count < 2 and valid_moves.empty()) {
+        valid_moves.emplace_back(-1, -1);
+    }
+    return valid_moves;
+    // valid_moves = []
+    //  for x in range(self.board_size):
+    //      for y in range(self.board_size):
+    //          if self.is_valid_move(x, y):
+    //              valid_moves.append((x, y))
+    //  if self.pass_count < 2 and len(valid_moves) == 0:
+    //      valid_moves.append((-1, -1))
+}

@@ -102,6 +102,9 @@ public:
 
     //待补充
     void makeMove(int x, int y);
+
+    vector<Point> getMoves();
+
 };
 
 
