@@ -1,6 +1,7 @@
 #include "doctest.h"
 #include "ModelTest.cpp"
 #include "GameTest.cpp"
+#include "MCTSTest.cpp"
 
 int startTest(int argc, char *argv[]) {
     // 运行 doctest 测试

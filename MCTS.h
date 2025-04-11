@@ -17,19 +17,20 @@
 class Node {
 public:
     Node *parent;
+    Point move;
     int visits;
     double value_sum;
     double prior_prob;
     double ucb{};
-    std::unordered_map<Point, Node *, PointHash> children;
+    unordered_map<Point, Node *, PointHash> children;
 
     Node(Node *parent = nullptr);
 
     bool isLeaf();
 
-    pair<Point, Node *> selectChild(double exploration_factor);
+    Node * selectChild(double exploration_factor);
 
-    void expand(Game &game, std::vector<Point> &actions, const std::vector<float> &prior_probs);
+    void expand(Game &game, vector<Point> &actions, const vector<float> &prior_probs);
 
     void update(double value);
 
@@ -44,11 +45,11 @@ public:
 
     void search(Game &game, Node *node, int num_simulations);
 
-    void backpropagate(Node *node, float value);
+    void backPropagate(Node *node, float value);
 
-    std::pair<std::vector<int>, std::vector<float>> get_action_probabilities(Game game);
+    pair<vector<int>, vector<float>> get_action_probabilities(Game game);
 
-    std::vector<float> apply_temperature(std::vector<float> action_probabilities, float temperature);
+    vector<float> apply_temperature(vector<float> action_probabilities, float temperature);
 
 
 private:

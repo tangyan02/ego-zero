@@ -50,8 +50,7 @@ public:
 class Game {
     vector<Point> historyMoves;
 
-    int pass_count;
-
+    int pass_count = 0;
 
     int crossDx[4] = {1, 0, -1, 0};
     int crossDy[4] = {0, 1, 0, -1};
@@ -66,7 +65,7 @@ class Game {
 public:
     Board board;
     int boardSize;
-    int tieMu;
+    float tieMu;
     int currentPlayer;
     vector<Point> bannedMoves;
     vector<Board> history;
@@ -95,6 +94,8 @@ public:
 
     pair<int, int> calculateScore();
 
+    int calculateWinner();
+
     void refreshBannedMoves();
 
     //待测试
@@ -105,6 +106,7 @@ public:
 
     vector<Point> getMoves();
 
+    int getMoveIndex(int x, int y) const;
 };
 
 

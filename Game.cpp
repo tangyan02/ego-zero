@@ -202,6 +202,7 @@ bool Game::isValidMove(int x, int y) {
 
 Game::Game(int boardSize, float tieMu) {
     currentPlayer = 1;
+    pass_count = 0;
     this->tieMu = tieMu;
     this->boardSize = boardSize;
     for (int i = 0; i < boardSize; i++)
@@ -255,6 +256,15 @@ pair<int, int> Game::calculateScore() {
     white_score += tieMu;
 
     return make_pair(black_score, white_score);
+}
+
+int Game::calculateWinner() {
+    auto [blackScore, whiteScore] = calculateScore();
+    if (blackScore > whiteScore)
+        return BLACK;
+    if (blackScore < whiteScore)
+        return WHITE;
+    return 0;
 }
 
 void Game::refreshBannedMoves() {
@@ -431,4 +441,8 @@ vector<Point> Game::getMoves() {
     //              valid_moves.append((x, y))
     //  if self.pass_count < 2 and len(valid_moves) == 0:
     //      valid_moves.append((-1, -1))
+}
+
+int Game::getMoveIndex(int x, int y) const {
+    return x * boardSize + y;
 }
