@@ -380,6 +380,11 @@ void Game::makeMove(int x, int y) {
             }
         }
         history.emplace_back(boardTmp);
+
+        //检查历史长度是否超过8，如果超过则截取
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.erase(history.begin());
+        }
         return;
     }
 

@@ -119,7 +119,7 @@ std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::v
             training_data.emplace_back(state, mcts_probs, std::vector<float>{value});
         }
 
-        cout << "winner is " << winner << endl;
+        cout << "winner is " << ((winner == 1) ? "x" : "o") << endl;
     }
     return training_data;
 }

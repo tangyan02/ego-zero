@@ -10,8 +10,8 @@ using namespace std;
 
 void selfPlay() {
     Model model;
-    model.init("../test/model/model_latest.onnx");
-    recordSelfPlay(19, 1, 100, 1, 3, "", &model);
+    model.init("../model/model_latest.onnx");
+    recordSelfPlay(9, 1, 100, 1, 3, "", &model);
 }
 
 int main(int argc, char *argv[]) {
