@@ -116,7 +116,7 @@ void MonteCarloTree::backPropagate(Node *node, float value) {
     }
 }
 
-pair<vector<int>, vector<float> > MonteCarloTree::get_action_probabilities(Game game) {
+pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(Game game) {
     Node *node = root;
     vector<pair<Point, int> > action_visits;
     for (auto &item: node->children) {
@@ -145,12 +145,10 @@ pair<vector<int>, vector<float> > MonteCarloTree::get_action_probabilities(Game 
 
     vector<float> probs(game.boardSize * game.boardSize, 0);
     for (int i = 0; i < moves.size(); i++) {
-        probs[game.getMoveIndex(moves[i].x, moves[i].y)] = action_probs[i];
+        probs[i] = action_probs[i];
     }
 
-    vector<int> range(game.boardSize * game.boardSize);
-    iota(range.begin(), range.end(), 0);
-    return make_pair(range, probs);
+    return make_pair(moves, probs);
 }
 
 vector<float> MonteCarloTree::apply_temperature(vector<float> action_probabilities, float temperature) {
