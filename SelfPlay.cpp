@@ -49,10 +49,9 @@ std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::v
         std::vector<std::tuple<vector<vector<vector<float>>>, int, std::vector<float>>> game_data;
 
         int step = 0;
-//        Node *node = new Node();
+        Node *node = new Node();
         while (!game.endGameCheck()) {
 
-            Node *node = new Node();
           //开始mcts预测
             long startTime = getSystemTime();
             int simiNum = numSimulations - node->visits;
@@ -99,18 +98,17 @@ std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::v
             printGame(game, move, action_probs_normalized[index], temperature);
             step++;
 
-            delete node;
             //更新node
-//            for (const auto &item: node->children) {
-//                if (item.first != action) {
-//                    item.second->release();
-//                }
-//            }
-//            for (const auto item: node->children) {
-//                if (item.first == action) {
-//                    node = item.second;
-//                }
-//            }
+            for (const auto &item: node->children) {
+                if (item.first != move) {
+                    item.second->release();
+                }
+            }
+            for (const auto item: node->children) {
+                if (item.first == move) {
+                    node = item.second;
+                }
+            }
         }
 
         auto winner = game.calculateWinner();
