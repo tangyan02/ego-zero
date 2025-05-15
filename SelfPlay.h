@@ -23,7 +23,7 @@ void recordSelfPlay(
         int numSimulations,
         float temperatureDefault,
         float explorationFactor,
-        const std::string& shard,
+        int shard,
         Model* model);
 
 #endif //SELFPLAY_H

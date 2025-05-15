@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import multiprocessing
@@ -8,6 +9,7 @@ import Logger as Logger
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
+import ConfigReader
 
 import sys
 
@@ -45,7 +47,7 @@ def update_count(k, filepath="model/count.txt"):
     with open(filepath, 'w') as f:
         f.write(str(count))
 
-    print(getTimeStr() + f"更新对局计数，当前完成对局 " + str(count))
+    Logger.infoD(f"更新对局计数，当前完成对局 {count}")
     return count
 
 
@@ -55,12 +57,15 @@ if __name__ == "__main__":
 
     dirPreBuild()
 
-    board_size = 9
-    num_processes = 1
+    config = ConfigReader.load_simple_config("application.conf")
 
-    lr = 1e-3
-    batch_size = 64
-    episode = 100000
+    board_size = int(config['boardSize'])
+    num_processes = int(config['numProcesses'])
+    lr = float(config['lr'])
+    episode = int(config['episode'])
+    batch_size = int(config['batchSize'])
+    numGames = int(config['numGames'])
+
     total_games_count = update_count(0)
 
     # 模型初始化
@@ -73,39 +78,29 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        # pool = multiprocessing.Pool(processes=num_processes)
-        # args = [(board_size, tie_mu, numGames, i, numSimulations,
-        #          temperatureDefault, explorationFactor) for i in range(num_processes)]
-        # results = pool.starmap(SelfPlay.selfPlay, args)
-        #
-        # pool.close()
-        # pool.join()
+        with ThreadPoolExecutor(max_workers=num_processes) as executor:
+            futures = [executor.submit(Bridge.run_program, i) for i in range(num_processes)]
 
-        # 合并结果
-        # training_data = []
-        # succeeded = 0
-        # for data in results:
-        #     if len(data) > 0:
-        #         succeeded += 1
-        #     training_data.extend(data)
+            # 等待所有任务完成
+            for future in futures:
+                future.result()
 
-        Bridge.run_program(0)
-        training_data = Bridge.getFileData(1)
+        training_data = Bridge.getFileData(num_processes)
 
         end_time = time.time()
-        Logger.info(f"自我对弈完毕，用时 {end_time - start_time} s")
+        Logger.infoD(f"自我对弈完毕，用时 {end_time - start_time} s")
 
         extended_data = get_extended_data(training_data)
-        Logger.info(f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
+        Logger.infoD(f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
             round(len(extended_data) / (end_time - start_time), 1)) + " 条/s")
 
         train(extended_data, model, device, optimizer, batch_size, i_episode)
 
         save_model(model, optimizer, board_size)
-        Logger.info(f"最新模型已保存 episode:{i_episode}")
+        Logger.infoD(f"最新模型已保存 episode:{i_episode}")
 
-        Logger.info(f"episode {i_episode} 完成")
+        Logger.infoD(f"episode {i_episode} 完成")
 
         # 更新计数
-        count = num_processes
+        count = num_processes * numGames
         total_games_count = update_count(count)

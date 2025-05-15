@@ -33,12 +33,14 @@ void addMove(Game &game,
     game_data.push_back(record);
 }
 
-std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::vector<float>>> selfPlay(int boardSize,
-                                                                                                        int numGames,
-                                                                                                        int numSimulations,
-                                                                                                        float temperatureDefault,
-                                                                                                        float explorationFactor,
-                                                                                                        Model &model
+std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > selfPlay(
+    int shard,
+    int boardSize,
+    int numGames,
+    int numSimulations,
+    float temperatureDefault,
+    float explorationFactor,
+    Model &model
 ) {
 
     MonteCarloTree mcts = MonteCarloTree(&model, explorationFactor);
@@ -57,7 +59,7 @@ std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::v
             int simiNum = numSimulations - node->visits;
             mcts.search(game, node, simiNum);
             if (simiNum > 0) {
-                cout << "========" << endl << "search cost " << getSystemTime() - startTime << " ms, simi num " << simiNum << ", "
+                cout << "======== "<<shard<<"-" << i <<" =======" << endl << "search cost " << getSystemTime() - startTime << " ms, simi num " << simiNum << ", "
                      << "per simi " << (getSystemTime() - startTime) / simiNum << " ms" << endl;
             }
 
@@ -128,15 +130,15 @@ void recordSelfPlay(
         int numSimulations,
         float temperatureDefault,
         float explorationFactor,
-        const std::string& shard,
+        int shard,
         Model* model){
 
         // 创建文件流对象
-        std::ofstream file("record/data" + shard + ".txt");
+        std::ofstream file("record/data_" + to_string(shard) + ".txt");
 
         if (file.is_open()) {
 
-                auto data = selfPlay(boardSize, numGames, numSimulations,
+                auto data = selfPlay(shard, boardSize, numGames, numSimulations,
                                      temperatureDefault, explorationFactor, *model);
                 file << data.size() << endl;
                 std::cout << "data count " << data.size() << endl;

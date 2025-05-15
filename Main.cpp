@@ -5,25 +5,37 @@
 #include "Model.h"
 #include "test/TestAssistant.cpp"
 #include "SelfPlay.h"
+#include "ConfigReader.cpp"
 
 using namespace std;
 
 void selfPlay(int argc, char *argv[]) {
-    string shard;
+    int shard;
     if (argc > 1) {
         string firstArg = argv[1];
         cout << "current shard " << firstArg << endl;
-        shard = "_" + firstArg;
+        shard = stoi(firstArg);
     }
 
+    // Read configuration
+    auto config = readConfigFile("application.conf");
+
+    // Parse parameters with defaults if not found
+    int boardSize = config.count("boardSize") ? stoi(config["boardSize"]) : 9;
+    int numGames = config.count("numGames") ? stoi(config["numGames"]) : 1;
+    int numSimulation = config.count("numSimulation") ? stoi(config["numSimulation"]) : 100;
+    float temperatureDefault = config.count("temperatureDefault") ? stof(config["temperatureDefault"]) : 1;
+    float explorationFactor = config.count("explorationFactor") ? stof(config["explorationFactor"]) : 3;
+    string modelPath = config.count("modelPath") ? config["modelPath"] : "./model/model_latest.onnx";
+
     Model model;
-    model.init("./model/model_latest.onnx");
+    model.init(modelPath);
     recordSelfPlay(
-        9,
-        1,
-        100,
-        1,
-        3,
+        boardSize,
+        numGames,
+        numSimulation,
+        temperatureDefault,
+        explorationFactor,
         shard,
         &model);
 }
