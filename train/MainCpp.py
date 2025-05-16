@@ -2,7 +2,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-import multiprocessing
 
 import Bridge
 import Logger as Logger
@@ -52,8 +51,6 @@ def update_count(k, filepath="model/count.txt"):
 
 
 if __name__ == "__main__":
-
-    multiprocessing.set_start_method('spawn')  # 在主进程设置一次
 
     dirPreBuild()
 

@@ -190,16 +190,29 @@ def load_onnx_model(model_path):
     :param model_path: ONNX 模型的路径
     :return: ONNX 运行时的会话
     """
-    # 尝试优先使用GPU，如果没有GPU则使用CPU
     try:
-        providers = ['CUDAExecutionProvider', 'CoreMLExecutionProvider', 'CPUExecutionProvider']
+        # 获取当前环境中可用的执行提供程序
+        available_providers = ort.get_available_providers()
+
+        # 设置优先级顺序（按优先级从高到低）
+        preferred_providers = [
+            'CUDAExecutionProvider',    # GPU (NVIDIA)
+            'CoreMLExecutionProvider',  # Apple Core ML
+            'CPUExecutionProvider'      # 默认CPU
+        ]
+
+        # 筛选出实际可用的提供程序（按优先级顺序）
+        providers = [p for p in preferred_providers if p in available_providers]
+
+        # 如果没有可用的提供程序，则使用默认（通常是CPU）
+        if not providers:
+            providers = available_providers
         session = ort.InferenceSession(model_path, providers=providers)
-        # 查看实际使用的执行提供程序
         print("当前使用的执行提供程序:", session.get_providers())
         return session
     except Exception as e:
-        print(f"Failed to load ONNX model: {e}.")
-    return None
+        print(f"Failed to load ONNX model: {e}")
+        return None
 
 
 def evaluate_state_onnx(onnx_model, input):

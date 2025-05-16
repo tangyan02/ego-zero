@@ -44,4 +44,4 @@ def train(extended_data, network, device, optimizer, batch_size, i_episode):
 
         running_loss += loss.item()
 
-    Logger.info(f"episode {i_episode} Loss: {running_loss / len(dataloader)}")
+    Logger.infoD(f"episode {i_episode} Loss: {running_loss / len(dataloader)}")

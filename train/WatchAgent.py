@@ -11,7 +11,7 @@ gameUi = GameUI(board_size=9)
 board_size = 9
 tie_mu = 3.25
 
-onnx_model = Network.load_onnx_model("model/model_latest.onnx")
+onnx_model = Network.load_onnx_model("model/model_latest_fp16.onnx")
 game = Game(board_size=board_size, device=Utils.getDevice(), tie_mu=tie_mu)
 
 hint = [0, True, True]

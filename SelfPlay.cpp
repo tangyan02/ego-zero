@@ -23,16 +23,6 @@ void printGame(Game &game, Point move, double rate,
 
 }
 
-
-void addMove(Game &game,
-               std::vector<std::tuple<vector<vector<vector<float>>>, int, std::vector<float>>> &game_data,
-               std::vector<float> &action_probs
-) {
-    auto state = Model::get_state(game);
-    std::tuple<vector<vector<vector<float>>>, int, std::vector<float>> record(state, game.currentPlayer, action_probs);
-    game_data.push_back(record);
-}
-
 std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > selfPlay(
     int shard,
     int boardSize,
@@ -93,7 +83,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             int index = distribution(gen);
             Point move = actions[index];
 
-            addMove(game, game_data, action_probs);
+            game_data.emplace_back(Model::get_state(game),game.currentPlayer, action_probs);
 
             game.makeMove(move.x, move.y);
 
