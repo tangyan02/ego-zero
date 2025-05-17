@@ -45,12 +45,12 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
         while (!game.endGameCheck()) {
 
           //开始mcts预测
-            long startTime = getSystemTime();
+            auto startTime = getSystemTime();
             int simiNum = numSimulations - node->visits;
             mcts.search(game, node, simiNum);
             if (simiNum > 0) {
                 cout << "======== "<<shard<<"-" << i <<" =======" << endl << "search cost " << getSystemTime() - startTime << " ms, simi num " << simiNum << ", "
-                     << "per simi " << (getSystemTime() - startTime) / simiNum << " ms" << endl;
+                     << "per simi " << (getSystemTime() - startTime) / (float)simiNum << " ms" << endl;
             }
 
             std::vector<Point> actions;

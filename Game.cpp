@@ -111,7 +111,7 @@ bool Game::isEyePair(int x, int y) {
     auto aroundPair = countAround(x, y);
     int corner_not_self_count = aroundPair.first;
     int cross_not_self_count = aroundPair.second;
-    if (cross_not_self_count > 0 or corner_not_self_count > self_corner_count_limit) {
+    if (cross_not_self_count > 0 || corner_not_self_count > self_corner_count_limit) {
         return false;
     }
 
@@ -120,10 +120,10 @@ bool Game::isEyePair(int x, int y) {
         int px = x + cornerDx[i];
         int py = y + cornerDy[i];
         int p_self_corner_count_limit = 3;
-        if (isOnSide(x, y) and isOnSide(px, py)) {
+        if (isOnSide(x, y) && isOnSide(px, py)) {
             p_self_corner_count_limit = 2;
         }
-        if (isOnBoard(px, py) and isCrossEye(px, py)) {
+        if (isOnBoard(px, py) && isCrossEye(px, py)) {
             auto p_aroundPair = countAround(px, py);
             int p_corner_not_self_count = p_aroundPair.first;
             int p_cross_not_self_count = p_aroundPair.second;
@@ -164,7 +164,7 @@ bool Game::isValidMove(int x, int y) {
 
     //判断禁止点
     for (auto banned_move: bannedMoves) {
-        if (x == banned_move.x and y == banned_move.y) {
+        if (x == banned_move.x && y == banned_move.y) {
             return false;
         }
     }
@@ -233,9 +233,9 @@ bool Game::endGameCheck() {
     return pass_count >= 2;
 }
 
-pair<int, int> Game::calculateScore() {
-    int black_score = 0;
-    int white_score = 0;
+pair<float, float> Game::calculateScore() {
+    float black_score = 0;
+    float white_score = 0;
 
     for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
@@ -371,7 +371,7 @@ void Game::refreshEatMoves() {
 }
 
 void Game::makeMove(int x, int y) {
-    if (x == -1 and y == -1) {
+    if (x == -1 && y == -1) {
         passMove();
         Board boardTmp;
         for (int i = 0; i < boardSize; i++) {
@@ -435,7 +435,7 @@ vector<Point> Game::getMoves() {
             }
         }
     }
-    if (pass_count < 2 and valid_moves.empty()) {
+    if (pass_count < 2 && valid_moves.empty()) {
         valid_moves.emplace_back(-1, -1);
     }
     return valid_moves;

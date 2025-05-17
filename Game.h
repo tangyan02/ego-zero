@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 #include <algorithm>
 
 const int MAX_BOARD_SIZE = 19;
@@ -96,7 +97,7 @@ public:
 
     bool endGameCheck();
 
-    pair<int, int> calculateScore();
+    pair<float, float> calculateScore();
 
     int calculateWinner();
 

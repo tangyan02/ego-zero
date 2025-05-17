@@ -8,9 +8,11 @@ import Logger as Logger
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
-import ConfigReader
+
 
 import sys
+
+from ConfigReader import ConfigReader
 
 sys.stdout = sys.__stdout__
 sys.stdout.reconfigure(line_buffering=True)  # 强制行缓冲
@@ -54,14 +56,14 @@ if __name__ == "__main__":
 
     dirPreBuild()
 
-    config = ConfigReader.load_simple_config("application.conf")
+    ConfigReader.init()
 
-    board_size = int(config['boardSize'])
-    num_processes = int(config['numProcesses'])
-    lr = float(config['lr'])
-    episode = int(config['episode'])
-    batch_size = int(config['batchSize'])
-    numGames = int(config['numGames'])
+    board_size = int(ConfigReader.get('boardSize'))
+    num_processes = int(ConfigReader.get('numProcesses'))
+    lr = float(ConfigReader.get('lr'))
+    episode = int(ConfigReader.get('episode'))
+    batch_size = int(ConfigReader.get('batchSize'))
+    numGames = int(ConfigReader.get('numGames'))
 
     total_games_count = update_count(0)
 

@@ -2,6 +2,8 @@ import subprocess
 
 import numpy as np
 
+from ConfigReader import ConfigReader
+
 
 def getFileData(shard_num):
     training_data = []
@@ -31,7 +33,7 @@ def getFileData(shard_num):
 
 def run_program(shard):
     # 执行可执行程序，传入参数shard
-    process = subprocess.Popen(['../cmake-build-debug/ego-zero', str(shard)], stdout=subprocess.PIPE,
+    process = subprocess.Popen([ConfigReader.get("cppPath"), str(shard)], stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
 
     # 持续打印输出
