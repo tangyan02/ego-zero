@@ -8,7 +8,7 @@ import Logger as Logger
 from Network import get_model, save_model
 from Train import train
 from Utils import getDevice, getTimeStr, dirPreBuild
-
+from multiprocessing import Pool
 
 import sys
 
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     episode = int(ConfigReader.get('episode'))
     batch_size = int(ConfigReader.get('batchSize'))
     numGames = int(ConfigReader.get('numGames'))
+    cppPath = ConfigReader.get("cppPath")
 
     total_games_count = update_count(0)
 
@@ -77,8 +78,8 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        with ThreadPoolExecutor(max_workers=num_processes) as executor:
-            futures = [executor.submit(Bridge.run_program, i) for i in range(num_processes)]
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            futures = [executor.submit(Bridge.run_program, i, cppPath) for i in range(1)]
 
             # 等待所有任务完成
             for future in futures:

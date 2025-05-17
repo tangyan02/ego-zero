@@ -3,7 +3,7 @@
 TEST_CASE("is_valid_move") {
     Game game(19);
     Model model;
-    model.init("../test/model/model_latest.onnx");
+    model.init("../test/model/model_latest.onnx", "cpu");
 
     auto state = Model::get_state(game);
     auto result = model.evaluate_state(state);

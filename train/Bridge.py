@@ -31,9 +31,9 @@ def getFileData(shard_num):
     return training_data
 
 
-def run_program(shard):
+def run_program(shard, cppPath):
     # 执行可执行程序，传入参数shard
-    process = subprocess.Popen([ConfigReader.get("cppPath"), str(shard)], stdout=subprocess.PIPE,
+    process = subprocess.Popen([cppPath, str(shard)], stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
 
     # 持续打印输出

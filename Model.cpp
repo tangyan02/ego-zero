@@ -11,7 +11,7 @@ std::wstring ConvertStringToWString(const std::string& str) {
 Model::Model() : memoryInfo(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)) {
 }
 
-void Model::init(string modelPath) {
+void Model::init(string modelPath, string coreType) {
     // 初始化环境
     env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
 
@@ -23,27 +23,49 @@ void Model::init(string modelPath) {
     // 判断是否有GPU
     auto providers = Ort::GetAvailableProviders();
     //看看有没有GPU支持列表
-    //    auto tensorRtAvailable = std::find(providers.begin(), providers.end(), "TensorrtExecutionProvider");
-    //    if ((tensorRtAvailable != providers.end()))//找到cuda列表
-    //    {
-    //        std::cout << "found providers:" << std::endl;
-    //        for (auto provider: providers)
-    //            std::cout << provider << std::endl;
-    //        std::cout << "use: TensorrtExecutionProvider" << std::endl;
-    //        OrtTensorRTProviderOptions tensorRtProviderOptions;
-    //        sessionOptions->AppendExecutionProvider_TensorRT(tensorRtProviderOptions);
-    //    }
+    //auto tensorRtAvailable = std::find(providers.begin(), providers.end(), "TensorrtExecutionProvider");
+    //if ((tensorRtAvailable != providers.end()))//找到cuda列表
+    //{
+    //    std::cout << "found providers:" << std::endl;
+    //    for (auto provider: providers)
+    //        std::cout << provider << std::endl;
+    //    std::cout << "use: TensorrtExecutionProvider" << std::endl;
+    //    OrtTensorRTProviderOptions tensorRtProviderOptions;
+    //    sessionOptions->AppendExecutionProvider_TensorRT(tensorRtProviderOptions);
+    //}
 
-    auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
-    if ((cudaAvailable != providers.end())) //找到cuda列表
-    {
-        std::cout << "found providers:" << std::endl;
-        for (auto provider: providers)
-            std::cout << provider << std::endl;
-        std::cout << "use: CUDAExecutionProvider" << std::endl;
-        OrtCUDAProviderOptions cudaProviderOptions;
-        sessionOptions->AppendExecutionProvider_CUDA(cudaProviderOptions);
+    if (coreType == "gpu") {
+
+        auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
+        if ((cudaAvailable != providers.end())) //找到cuda列表
+        {
+            std::cout << "found providers:" << std::endl;
+            for (auto provider : providers)
+                std::cout << provider << std::endl;
+            std::cout << "use: CUDAExecutionProvider" << std::endl;
+            //OrtCUDAProviderOptions cudaProviderOptions;
+            //sessionOptions->AppendExecutionProvider_CUDA(cudaProviderOptions);
+
+
+            // 启用 CUDA 执行提供器
+            OrtCUDAProviderOptions cuda_options;
+            cuda_options.device_id = 0;  // 使用第 0 块 GPU
+            cuda_options.arena_extend_strategy = 0;  // 动态显存分配（0=kNextPowerOfTwo, 1=kSameAsRequested）
+            cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearch::OrtCudnnConvAlgoSearchExhaustive;  // 使用最优卷积算法
+            cuda_options.do_copy_in_default_stream = false;  // 允许异步拷贝（提升多流性能）
+            cuda_options.gpu_mem_limit = 1ULL << 32;  // 限制显存使用（例如 4GB）
+            cuda_options.has_user_compute_stream = 0;  // 使用默认 CUDA 流（如需自定义流，设为 1）
+
+            sessionOptions->AppendExecutionProvider_CUDA(cuda_options);
+
+            // 会话优化
+            sessionOptions->SetIntraOpNumThreads(1);
+            sessionOptions->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            sessionOptions->EnableMemPattern();
+        }
+
     }
+
 
 #ifdef _WIN32
     // 创建会话

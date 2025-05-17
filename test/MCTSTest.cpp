@@ -3,7 +3,7 @@
 TEST_CASE("search") {
     Game game(19);
     Model model;
-    model.init("../test/model/model_latest.onnx");
+    model.init("../test/model/model_latest.onnx", "cpu");
 
     MonteCarloTree mcts = MonteCarloTree(&model);
     Node node = Node();

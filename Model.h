@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <onnxruntime_cxx_api.h>
+
 #include <iostream>
 #include <numeric>
 #include <codecvt>
@@ -15,7 +16,7 @@ class Model {
 public:
     Model();
 
-    void init(string model_path);
+    void init(string model_path, string coreType);
 
     pair<float, vector<float> > evaluate_state(vector<vector<vector<float> > > &state);
 

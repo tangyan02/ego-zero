@@ -10,7 +10,7 @@
 using namespace std;
 
 void selfPlay(int argc, char *argv[]) {
-    int shard;
+    int shard = 0;
     if (argc > 1) {
         string firstArg = argv[1];
         cout << "current shard " << firstArg << endl;
@@ -27,17 +27,39 @@ void selfPlay(int argc, char *argv[]) {
     float temperatureDefault = config.count("temperatureDefault") ? stof(config["temperatureDefault"]) : 1;
     float explorationFactor = config.count("explorationFactor") ? stof(config["explorationFactor"]) : 3;
     string modelPath = config.count("modelPath") ? config["modelPath"] : "./model/model_latest.onnx";
+    int numProcesses = config.count("numProcesses") ? stoi(config["numProcesses"]) : 1;
+    string coreType = config.count("coreType") ? config["coreType"] : "cpu";
 
     Model model;
-    model.init(modelPath);
-    recordSelfPlay(
-        boardSize,
-        numGames,
-        numSimulation,
-        temperatureDefault,
-        explorationFactor,
-        shard,
-        &model);
+    model.init(modelPath, coreType);
+
+    std::vector<std::thread> threads;
+    // 启动多个线程
+    for (int i = 0; i < numProcesses; ++i) {
+        threads.emplace_back(recordSelfPlay, boardSize,
+            numGames,
+            numSimulation,
+            temperatureDefault,
+            explorationFactor,
+            i,
+            &model);
+    }
+
+    // 等待所有线程完成
+    for (auto& t : threads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    //recordSelfPlay(
+    //    boardSize,
+    //    numGames,
+    //    numSimulation,
+    //    temperatureDefault,
+    //    explorationFactor,
+    //    shard,
+    //    &model);
 }
 
 int main(int argc, char *argv[]) {
