@@ -11,7 +11,7 @@ std::mt19937 gen(rd());
 
 
 void printGame(Game &game, Point move, double rate,
-               float temperature) {
+               float temperature, vector<float> probs) {
         game.render();
 
         std::string pic = ((3-game.currentPlayer) == 1) ? "x" : "o";
@@ -20,6 +20,15 @@ void printGame(Game &game, Point move, double rate,
              << " on rate " << round(rate * 1000) / 1000
              << " temperature " << round(temperature * 100) / 100
              << endl;
+
+
+        std::cout << std::fixed << std::setprecision(3);
+        for (int i = 0;i < probs.size();i++) {
+            cout << probs[i] << " ";
+            if (i % game.boardSize == game.boardSize-1) {
+                cout << endl;
+            }
+        }
 
 }
 
@@ -53,41 +62,49 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
                      << "per simi " << (getSystemTime() - startTime) / (float)simiNum << " ms" << endl;
             }
 
-            std::vector<Point> actions;
-            std::vector<float> action_probs;
-            std::tie(actions, action_probs) = mcts.get_action_probabilities(game);
-
-            //计算温度
+            std::vector<Point> moves;
+            std::vector<float> moves_probs;
+            std::tie(moves, moves_probs) = mcts.get_action_probabilities(game);
             float temperature = temperatureDefault;
-//            float temperature =
-//                    temperatureDefault * (game.boardSize * game.boardSize - step * 16) /
-//                    (game.boardSize * game.boardSize);
-//
-//            temperature /= 2;
-//            if (temperature < 0.1) {
-//                temperature = 0.1;
-//            }
+            float rate = 1;
+           
+            Point move;
 
-            std::vector<float> action_probs_temperature = mcts.apply_temperature(action_probs, temperature);
+            std::vector<float> action_probs_temperature = mcts.apply_temperature(moves_probs, temperature);
 
             // 归一化概率分布
             std::vector<float> action_probs_normalized;
             float sum = std::accumulate(action_probs_temperature.begin(), action_probs_temperature.end(), 0.0f);
-            for (const auto &prob: action_probs_temperature) {
+            for (const auto& prob : action_probs_temperature) {
                 action_probs_normalized.push_back(prob / sum);
             }
 
             // 随机选择
             std::discrete_distribution<int> distribution(action_probs_normalized.begin(),
-                                                         action_probs_normalized.end());
+                action_probs_normalized.end());
             int index = distribution(gen);
-            Point move = actions[index];
+            move = moves[index];
+            rate = action_probs_normalized[index];
 
-            game_data.emplace_back(Model::get_state(game),game.currentPlayer, action_probs);
+            // 构造矩阵
+            vector<float> probs_matrix(game.boardSize * game.boardSize, 0);
+
+            //for child in mcts.root.children:
+            //if child.move[0] >= 0 :
+            //    probs_matrix[child.move[0]][child.move[1]] = child.visits / visit_sum
+
+
+            if (!moves[0].isNull()) {
+                for (int i = 0;i < moves.size();i++ ) {
+                    auto move = moves[i];
+                    probs_matrix[game.getMoveIndex(move.x, move.y)] = moves_probs[i];
+                }
+                game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
+            }
 
             game.makeMove(move.x, move.y);
 
-            printGame(game, move, action_probs_normalized[index], temperature);
+            printGame(game, move, rate, temperature, probs_matrix);
             step++;
 
             //更新node
@@ -109,7 +126,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             training_data.emplace_back(state, mcts_probs, std::vector<float>{value});
         }
 
-        cout << "winner is " << ((winner == 1) ? "x" : "o") << endl;
+        cout << "winner is " << ((winner == 1) ? "x" : ((winner == 2) ? "o" : " nobody")) << endl;
     }
     return training_data;
 }
@@ -122,54 +139,60 @@ void recordSelfPlay(
         float explorationFactor,
         int shard,
         Model* model){
+        try {
+            // 创建文件流对象
+            std::ofstream file("record/data_" + to_string(shard) + ".txt");
 
-        // 创建文件流对象
-        std::ofstream file("record/data_" + to_string(shard) + ".txt");
+            if (file.is_open()) {
 
-        if (file.is_open()) {
+                    auto data = selfPlay(shard, boardSize, numGames, numSimulations,
+                                         temperatureDefault, explorationFactor, *model);
+                    file << data.size() << endl;
+                    std::cout << "data count " << data.size() << endl;
+                    for (auto &item: data) {
+                            auto state = get<0>(item);
 
-                auto data = selfPlay(shard, boardSize, numGames, numSimulations,
-                                     temperatureDefault, explorationFactor, *model);
-                file << data.size() << endl;
-                std::cout << "data count " << data.size() << endl;
-                for (auto &item: data) {
-                        auto state = get<0>(item);
+                            // 获取张量的维度
+                            int64_t dim0 = state.size();
+                            int64_t dim1 = state[0].size();
+                            int64_t dim2 = state[0][0].size();
 
-                        // 获取张量的维度
-                        int64_t dim0 = state.size();
-                        int64_t dim1 = state[0].size();
-                        int64_t dim2 = state[0][0].size();
+                            file << dim0 << " " << dim1 << " " << dim2 << endl;
+                            // 遍历张量并打印数值
+                            for (int64_t i = 0; i < dim0; ++i) {
+                                    for (int64_t j = 0; j < dim1; ++j) {
+                                            for (int64_t k = 0; k < dim2; ++k) {
+                                                    file << state[i][j][k] << " ";
+                                            }
+                                            file << endl;
+                                    }
+                            }
 
-                        file << dim0 << " " << dim1 << " " << dim2 << endl;
-                        // 遍历张量并打印数值
-                        for (int64_t i = 0; i < dim0; ++i) {
-                                for (int64_t j = 0; j < dim1; ++j) {
-                                        for (int64_t k = 0; k < dim2; ++k) {
-                                                file << state[i][j][k] << " ";
-                                        }
-                                        file << endl;
-                                }
-                        }
+                            vector<float> mctsProbList = get<1>(item);
+                            file << mctsProbList.size() << endl;
+                            for (auto f: mctsProbList) {
+                                    file << f << " ";
+                            }
+                            file << endl;
 
-                        vector<float> mctsProbList = get<1>(item);
-                        file << mctsProbList.size() << endl;
-                        for (auto f: mctsProbList) {
-                                file << f << " ";
-                        }
-                        file << endl;
+                            vector<float> valueList = get<2>(item);
+                            file << valueList.size() << endl;
+                            for (auto f: valueList) {
+                                    file << f << " ";
+                            }
+                            file << endl;
+                    }
 
-                        vector<float> valueList = get<2>(item);
-                        file << valueList.size() << endl;
-                        for (auto f: valueList) {
-                                file << f << " ";
-                        }
-                        file << endl;
-                }
-
-                // 关闭文件
-                file.close();
-                std::cout << "Data has been written to file." << std::endl;
-        } else {
-                std::cerr << "Failed to open file." << std::endl;
+                    // 关闭文件
+                    file.close();
+                    std::cout << "Data has been written to file." << std::endl;
+            } else {
+                    std::cerr << "Failed to open file." << std::endl;
+            }
+        }
+        catch (const std::exception& e) {
+            // 打印异常信息
+            std::cerr << "Exception in shard " << shard << ": " << e.what() << std::endl;
+            std::cout << "Exception in shard " << shard << ": " << e.what() << std::endl;
         }
 }

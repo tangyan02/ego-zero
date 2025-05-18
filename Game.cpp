@@ -164,8 +164,11 @@ bool Game::isValidMove(int x, int y) {
 
     //判断禁止点
     for (auto banned_move: bannedMoves) {
-        if (x == banned_move.x && y == banned_move.y) {
-            return false;
+        //如果同时是吃点，则不禁止
+        if (eatMoves.find(banned_move) == eatMoves.end()) {
+            if (x == banned_move.x && y == banned_move.y) {
+                return false;
+            }
         }
     }
 

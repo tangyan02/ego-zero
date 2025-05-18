@@ -166,35 +166,4 @@ vector<vector<vector<float> > > Model::get_state(Game &game) {
     }
 
     return result;
-    //   limit = 8
-    // # 直接创建 NumPy 数组
-    // numpy_array = np.zeros((limit * 2 + 1, game.board_size, game.board_size))
-    // k = 0
-    // for board in game.history[-limit:][::-1]:
-    //     for x in range(game.board_size):
-    //         for y in range(game.board_size):
-    //             if board[x][y] == game.current_player:
-    //                 numpy_array[k, x, y] = 1
-    //             else:
-    //                 numpy_array[k, x, y] = 0
-    //     k = k + 1
-    //
-    // k = limit
-    // for board in game.history[-limit:][::-1]:
-    //     for x in range(game.board_size):
-    //         for y in range(game.board_size):
-    //             if board[x][y] == 3 - game.current_player:
-    //                 numpy_array[k, x, y] = 1
-    //             else:
-    //                 numpy_array[k, x, y] = 0
-    //     k = k + 1
-    //
-    // # 判断自己是先还是后
-    // if game.current_player == 1:
-    //     for x in range(game.board_size):
-    //         for y in range(game.board_size):
-    //             numpy_array[k, x, y] = 1
-    //
-    // return numpy_array
-    return result;
 }

@@ -41,7 +41,7 @@ class MonteCarloTree {
 public:
     MonteCarloTree(Model *model, float exploration_factor = 5);
 
-    void simulate(Game game);
+    void simulate(Game game, int i);
 
     void search(Game &game, Node *node, int num_simulations);
 

@@ -3,6 +3,7 @@
 //
 
 #include "MCTS.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -37,26 +38,42 @@ Node *Node::selectChild(double exploration_factor) {
 }
 
 void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_probs) {
+  
+    //特殊处理跳过的情况
+    vector<float> probs_arr;
+    if (moves.size() > 1) {
+        for (auto& move : moves) {
+            int moveIndex = game.getMoveIndex(move.x, move.y);
+            probs_arr.emplace_back(prior_probs[moveIndex]);
+        }
+    }
+    else {
+        probs_arr.emplace_back(1);
+    }
+
     // 计算概率总和
     float sum_probs = 0.0;
-    for (auto &prob: prior_probs) {
+    for (auto& prob : probs_arr) {
         sum_probs += prob;
     }
 
-    for (auto &move: moves) {
-        Node *child = new Node(this);
+    for (int i = 0;i < moves.size();i++) {
+        auto move = moves[i];
+        auto prob = probs_arr[i];
+        Node* child = new Node(this);
         int moveIndex = game.getMoveIndex(move.x, move.y);
         child->move = move;
 
         // 归一化处理
         if (sum_probs != 0) {
-            child->prior_prob = prior_probs[moveIndex] / sum_probs;
+            child->prior_prob = prob / sum_probs;
         } else {
-            child->prior_prob = prior_probs[moveIndex];
+            child->prior_prob = prob;
         }
 
         children[move] = child;
     }
+
 }
 
 void Node::update(double value) {
@@ -68,8 +85,7 @@ MonteCarloTree::MonteCarloTree(Model *model, float exploration_factor)
     : model(model), root(nullptr), exploration_factor(exploration_factor) {
 }
 
-void MonteCarloTree::simulate(Game game) {
-    // cout << "新的模拟" << endl;
+void MonteCarloTree::simulate(Game game, int i) {
     Node *node = root;
     while (!node->isLeaf()) {
         Node *child = node->selectChild(exploration_factor);
@@ -87,13 +103,17 @@ void MonteCarloTree::simulate(Game game) {
         if (winner == 3 - game.currentPlayer) {
             value = -1;
         }
-        // cout << "游戏结束 赢家" << winner << endl;
     } else {
-        auto state = Model::get_state(game);
-        auto [value, probs] = model->evaluate_state(state);
         auto moves = game.getMoves();
-        node->expand(game, moves, probs);
-        // cout << "扩展完成" << endl;
+        if (moves[0].isNull()) {
+            value = 0;
+            vector<float> probs;
+            node->expand(game, moves, probs);
+        } else {
+            auto state = Model::get_state(game);
+            auto [value, probs] = model->evaluate_state(state);
+            node->expand(game, moves, probs);
+        }
     }
 
     backPropagate(node, -value);
@@ -103,8 +123,8 @@ void MonteCarloTree::search(Game &game, Node *node, int num_simulations) {
     root = node;
 
     for (int i = 0; i < num_simulations; i++) {
-        // cout << "开始模拟，次数 " << i << endl;
-        simulate(game);
+        //cout << "开始模拟，次数 " << i << endl;
+        simulate(game, i);
     }
 }
 
@@ -143,12 +163,7 @@ pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(Gam
         action_probs.push_back(prob);
     }
 
-    vector<float> probs(game.boardSize * game.boardSize, 0);
-    for (int i = 0; i < moves.size(); i++) {
-        probs[i] = action_probs[i];
-    }
-
-    return make_pair(moves, probs);
+    return make_pair(moves, action_probs);
 }
 
 vector<float> MonteCarloTree::apply_temperature(vector<float> action_probabilities, float temperature) {
