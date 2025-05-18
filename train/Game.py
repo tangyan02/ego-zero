@@ -360,13 +360,16 @@ class Game:
                     group = []
                     qi_count = 0
                     qi_move = None
+                    visitedQi = np.zeros((self.board_size, self.board_size), dtype=bool)
                     while stack:
                         cx, cy = stack.pop()
                         group.append((cx, cy))
                         for nx, ny in [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]:
                             if 0 <= nx < self.board_size and 0 <= ny < self.board_size:
                                 if self.board[nx, ny] == 0:
-                                    qi_count += 1
+                                    if not visitedQi[nx, ny]:
+                                        qi_count += 1
+                                        visitedQi[nx, ny] = 1
                                     qi_move = (nx, ny)
                                 elif self.board[nx, ny] == 3 - self.current_player and not visited[nx, ny]:
                                     visited[nx, ny] = True
