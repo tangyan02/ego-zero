@@ -27,8 +27,8 @@ bool Board::eq(Board &board, int size) {
 }
 
 void Board::loadData(vector<vector<int> > data) {
-    for (int i = 0;i < MAX_BOARD_SIZE;i++) {
-        for (int j = 0;j < MAX_BOARD_SIZE;j++) {
+    for (int i = 0; i < MAX_BOARD_SIZE; i++) {
+        for (int j = 0; j < MAX_BOARD_SIZE; j++) {
             this->board[i][j] = 0;
         }
     }
@@ -133,7 +133,7 @@ bool Game::isEyePair(int x, int y) {
             int p_corner_not_self_count = p_aroundPair.first;
             int p_cross_not_self_count = p_aroundPair.second;
             if (p_cross_not_self_count == 0 && p_corner_not_self_count + corner_not_self_count <=
-                p_self_corner_count_limit) {
+                                               p_self_corner_count_limit) {
                 return true;
             }
         }
@@ -346,6 +346,7 @@ void Game::refreshEatMoves() {
                 int qiCount = 0;
                 vector<Point> group;
                 Point qiMove;
+                bool visitedQi[MAX_BOARD_SIZE][MAX_BOARD_SIZE] = {false};
                 while (!stk.empty()) {
                     Point top = stk.top();
                     group.emplace_back(top);
@@ -357,7 +358,10 @@ void Game::refreshEatMoves() {
                         int py = cy + crossDy[k];
                         if (isOnBoard(px, py)) {
                             if (board.board[px][py] == NONE_P) {
-                                qiCount += 1;
+                                if (!visitedQi[px][py]) {
+                                    qiCount += 1;
+                                    visitedQi[px][py] = true;
+                                }
                                 qiMove = Point(px, py);
                             } else if (board.board[px][py] == 3 - currentPlayer && !visited[px][py]) {
                                 visited[px][py] = true;
