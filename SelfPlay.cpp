@@ -89,11 +89,6 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             // 构造矩阵
             vector<float> probs_matrix(game.boardSize * game.boardSize, 0);
 
-            //for child in mcts.root.children:
-            //if child.move[0] >= 0 :
-            //    probs_matrix[child.move[0]][child.move[1]] = child.visits / visit_sum
-
-
             if (!moves[0].isNull()) {
                 for (int i = 0;i < moves.size();i++ ) {
                     auto move = moves[i];

@@ -105,15 +105,9 @@ void MonteCarloTree::simulate(Game game, int i) {
         }
     } else {
         auto moves = game.getMoves();
-        if (moves[0].isNull()) {
-            value = 0;
-            vector<float> probs;
-            node->expand(game, moves, probs);
-        } else {
-            auto state = Model::get_state(game);
-            auto [value, probs] = model->evaluate_state(state);
-            node->expand(game, moves, probs);
-        }
+        auto state = Model::get_state(game);
+        auto [value, probs] = model->evaluate_state(state);
+        node->expand(game, moves, probs);
     }
 
     backPropagate(node, -value);
