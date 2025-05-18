@@ -53,7 +53,7 @@ class Game:
             return False
 
         # 检查落子后己方棋块是否有气
-        if (x, y) in self.banned_moves:
+        if (x, y) in self.banned_moves and (x, y) not in self.eat_moves:
             return False
 
         # 临时落子

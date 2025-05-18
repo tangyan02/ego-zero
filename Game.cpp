@@ -27,6 +27,11 @@ bool Board::eq(Board &board, int size) {
 }
 
 void Board::loadData(vector<vector<int> > data) {
+    for (int i = 0;i < MAX_BOARD_SIZE;i++) {
+        for (int j = 0;j < MAX_BOARD_SIZE;j++) {
+            this->board[i][j] = 0;
+        }
+    }
     for (int i = 0; i < data.size(); i++) {
         for (int j = 0; j < data[i].size(); j++) {
             this->board[i][j] = data[i][j];

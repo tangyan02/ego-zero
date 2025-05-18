@@ -63,7 +63,7 @@ void selfPlay(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-     //return startTest(argc, argv);
+     return startTest(argc, argv);
     selfPlay(argc, argv);
     return 0;
 }

@@ -186,6 +186,25 @@ TEST_CASE("banned_moves") {
     game.refreshBannedMoves();
     CHECK(game.isValidMove(0,4));
     CHECK(game.isValidMove(0,1));
+
+
+    game = Game(9);
+    data = {
+        {0,2,0,2,1,2,0,2,0},
+        {1,2,1,1,1,1,1,1,1},
+        {2,2,2,1,2,2,1,2,0},
+        {1,2,1,2,1,2,2,2,1},
+        {1,2,1,2,0,1,1,2,1},
+        {1,1,1,2,1,2,2,2,2},
+        {2,2,1,2,1,2,0,2,0},
+        {1,0,1,2,1,2,2,1,1},
+        {1,2,1,2,2,0,2,1,0}
+    };
+    game.board.loadData(data);
+    game.refreshBannedMoves();
+    game.refreshEatMoves();
+
+    CHECK(game.isValidMove(7, 1));
 }
 
 TEST_CASE("make_move") {
@@ -244,25 +263,6 @@ TEST_CASE("make_move") {
     game.refreshEatMoves();
 
     CHECK(game.eatMoves[Point(0,2)].size()==5);
-
-
-    game = Game(9);
-    data = {
-        {0,2,0,2,1,2,0,2,0},
-        {1,2,1,1,1,1,1,1,1},
-        {2,2,2,1,2,2,1,2,0},
-        {1,2,1,2,1,2,2,2,1},
-        {1,2,1,2,0,1,1,2,1},
-        {1,1,1,2,1,2,2,2,2},
-        {2,2,1,2,1,2,0,2,0},
-        {1,0,1,2,1,2,2,1,1},
-        {1,2,1,2,2,0,2,1,0}
-    };
-    game.board.loadData(data);
-    game.refreshBannedMoves();
-    game.refreshEatMoves();
- 
-    CHECK(game.isValidMove(7, 1));
 }
 
 
@@ -306,4 +306,18 @@ TEST_CASE("test_ko") {
     game.makeMove(3, 5);
 
     CHECK(!game.isValidMove(0,1));
+}
+
+TEST_CASE("eat_move") {
+    auto game = Game(4);
+    vector<vector<int> > data = {
+       {0, 2, 1, 0},
+       {2, 2, 1, 0},
+       {1, 1, 0, 0},
+       {0, 0, 0, 0}
+    };
+    game.board.loadData(data);
+    game.refreshBannedMoves();
+    game.refreshEatMoves();
+    CHECK(game.isValidMove(0, 0));
 }
