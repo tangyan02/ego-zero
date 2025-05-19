@@ -110,7 +110,7 @@ void MonteCarloTree::simulate(Game game, int i) {
         node->expand(game, moves, probs);
     }
 
-    backPropagate(node, -value);
+    backPropagate(node, value);
 }
 
 void MonteCarloTree::search(Game &game, Node *node, int num_simulations) {
