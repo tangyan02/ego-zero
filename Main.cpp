@@ -34,7 +34,7 @@ void selfPlay(int argc, char *argv[]) {
     model.init(modelPath, coreType);
 
     std::vector<std::thread> threads;
-    // Æô¶¯¶à¸öÏß³Ì
+    // å¯åŠ¨å¤šä¸ªçº¿ç¨‹
     for (int i = 0; i < numProcesses; ++i) {
         threads.emplace_back(recordSelfPlay, boardSize,
             numGames,
@@ -45,7 +45,7 @@ void selfPlay(int argc, char *argv[]) {
             &model);
     }
 
-    // µÈ´ıËùÓĞÏß³ÌÍê³É
+    // ç­‰å¾…æ‰€æœ‰çº¿ç¨‹å®Œæˆ
     for (auto& t : threads) {
         if (t.joinable()) {
             t.join();
@@ -63,7 +63,7 @@ void selfPlay(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-     //return startTest(argc, argv);
+     return startTest(argc, argv);
     selfPlay(argc, argv);
     return 0;
 }

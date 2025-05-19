@@ -90,9 +90,9 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             vector<float> probs_matrix(game.boardSize * game.boardSize, 0);
 
             if (!moves[0].isNull()) {
-                for (int i = 0;i < moves.size();i++ ) {
-                    auto move = moves[i];
-                    probs_matrix[game.getMoveIndex(move.x, move.y)] = moves_probs[i];
+                for (int k = 0;k < moves.size();k++ ) {
+                    auto p = moves[k];
+                    probs_matrix[game.getMoveIndex(p.x, p.y)] = moves_probs[k];
                 }
                 game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
             }
