@@ -94,8 +94,8 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
                     auto p = moves[k];
                     probs_matrix[game.getMoveIndex(p.x, p.y)] = moves_probs[k];
                 }
-                game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
             }
+            game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
 
             game.makeMove(move.x, move.y);
 
