@@ -10,15 +10,18 @@ std::random_device rd;
 std::mt19937 gen(rd());
 
 
-void printGame(Game &game, Point move, double rate,
+void printGame(Model &model, Game &game, Point move, double rate,
                float temperature, vector<float> probs) {
         game.render();
+
+        auto state = Model::get_state(game);
+        auto [value, prob_metrix] = model.evaluate_state(state);
 
         std::string pic = ((3-game.currentPlayer) == 1) ? "x" : "o";
         cout << pic << " move is " << move.x << ","
              <<  move.y
              << " on rate " << round(rate * 1000) / 1000
-             << " temperature " << round(temperature * 100) / 100
+             << " value " << value
              << endl;
 
 
@@ -35,6 +38,7 @@ void printGame(Game &game, Point move, double rate,
 std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > selfPlay(
     int shard,
     int boardSize,
+    float tieMu,
     int numGames,
     int numSimulations,
     float temperatureDefault,
@@ -46,7 +50,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
     std::vector<std::tuple<vector<vector<vector<float>>>, std::vector<float>, std::vector<float>>> training_data;
 
     for (int i = 0; i < numGames; i++) {
-        Game game(boardSize);
+        Game game(boardSize, tieMu);
         std::vector<std::tuple<vector<vector<vector<float>>>, int, std::vector<float>>> game_data;
 
         int step = 0;
@@ -99,7 +103,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
             game.makeMove(move.x, move.y);
 
-            printGame(game, move, rate, temperature, probs_matrix);
+            printGame(model, game, move, rate, temperature, probs_matrix);
             step++;
 
             //更新node
@@ -128,6 +132,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
 void recordSelfPlay(
         int boardSize,
+        float tieMu,
         int numGames,
         int numSimulations,
         float temperatureDefault,
@@ -140,7 +145,7 @@ void recordSelfPlay(
 
             if (file.is_open()) {
 
-                    auto data = selfPlay(shard, boardSize, numGames, numSimulations,
+                    auto data = selfPlay(shard, boardSize, tieMu, numGames, numSimulations,
                                          temperatureDefault, explorationFactor, *model);
                     file << data.size() << endl;
                     std::cout << "data count " << data.size() << endl;

@@ -19,6 +19,7 @@
 
 void recordSelfPlay(
         int boardSize,
+        float tieMu,
         int numGames,
         int numSimulations,
         float temperatureDefault,

@@ -10,18 +10,19 @@
 using namespace std;
 
 void selfPlay(int argc, char *argv[]) {
-    int shard = 0;
-    if (argc > 1) {
-        string firstArg = argv[1];
-        cout << "current shard " << firstArg << endl;
-        shard = stoi(firstArg);
-    }
+    // int shard = 0;
+    // if (argc > 1) {
+    //     string firstArg = argv[1];
+    //     cout << "current shard " << firstArg << endl;
+    //     shard = stoi(firstArg);
+    // }
 
     // Read configuration
     auto config = readConfigFile("application.conf");
 
     // Parse parameters with defaults if not found
     int boardSize = config.count("boardSize") ? stoi(config["boardSize"]) : 9;
+    float tieMu = config.count("tieMu") ? stof(config["tieMu"]) : 3.25f;
     int numGames = config.count("numGames") ? stoi(config["numGames"]) : 1;
     int numSimulation = config.count("numSimulation") ? stoi(config["numSimulation"]) : 100;
     float temperatureDefault = config.count("temperatureDefault") ? stof(config["temperatureDefault"]) : 1;
@@ -30,13 +31,16 @@ void selfPlay(int argc, char *argv[]) {
     int numProcesses = config.count("numProcesses") ? stoi(config["numProcesses"]) : 1;
     string coreType = config.count("coreType") ? config["coreType"] : "cpu";
 
+
     Model model;
     model.init(modelPath, coreType);
 
     std::vector<std::thread> threads;
     // 启动多个线程
     for (int i = 0; i < numProcesses; ++i) {
-        threads.emplace_back(recordSelfPlay, boardSize,
+        threads.emplace_back(recordSelfPlay,
+            boardSize,
+            tieMu,
             numGames,
             numSimulation,
             temperatureDefault,
