@@ -81,6 +81,9 @@ class Game:
         if x == -1 and y == -1:
             self.pass_move()
             self.history.append(self.board.copy())
+
+            self.refresh_banned_moves()
+            self.refresh_eat_moves()
             return True
 
         # if not self.is_valid_move(x, y):

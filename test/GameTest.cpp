@@ -205,6 +205,37 @@ TEST_CASE("banned_moves") {
     game.refreshEatMoves();
 
     CHECK(game.isValidMove(7, 1));
+
+
+//. x x o x x x x o 
+//x x x x x x o x x 
+//x . x o x x x x x 
+//x x x o o o x x o 
+//x x o o o o o o o 
+//. x o o . o o . o 
+//x x o o o o o o o 
+//x o o . o o o o o 
+//o o o o x . o o . 
+
+    game = Game(9);
+    data = {
+        {0,1,1,2,1,1,1,1,2},
+        {1,1,1,1,1,1,2,1,1},
+        {1,0,1,2,1,1,1,1,1},
+        {1,1,1,2,2,2,1,1,2},
+        {1,1,2,2,2,2,2,2,2},
+        {0,1,2,2,0,2,2,0,2},
+        {1,1,2,2,2,2,2,2,2},
+        {1,2,2,0,2,2,2,2,2},
+        {2,2,2,2,1,0,2,2,0}
+    };
+    game.board.loadData(data);
+    game.currentPlayer = 2;
+    game.refreshBannedMoves();
+    game.refreshEatMoves();
+
+    auto moves = game.getMoves();
+    CHECK(!game.isValidMove(2, 1));
 }
 
 TEST_CASE("make_move") {

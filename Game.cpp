@@ -235,6 +235,10 @@ void Game::render() {
 void Game::passMove() {
     pass_count += 1;
     currentPlayer = 3 - currentPlayer;
+
+    //更新禁止点和打吃点
+    refreshBannedMoves();
+    refreshEatMoves();
 }
 
 bool Game::endGameCheck() {
@@ -397,6 +401,7 @@ void Game::makeMove(int x, int y) {
         if (history.size() > MAX_HISTORY_SIZE) {
             history.erase(history.begin());
         }
+
         return;
     }
 
