@@ -65,11 +65,11 @@ void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_p
         child->move = move;
 
         // 归一化处理
-        //if (sum_probs != 0) {
-        //    child->prior_prob = prob / sum_probs;
-        //} else {
-        //    child->prior_prob = prob;
-        //}
+        if (sum_probs != 0) {
+            child->prior_prob = prob / sum_probs;
+        } else {
+            child->prior_prob = prob;
+        }
 
         child->prior_prob = prob;
 
