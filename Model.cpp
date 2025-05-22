@@ -112,7 +112,7 @@ std::pair<float, std::vector<float> > Model::evaluate_state(vector<vector<vector
                                        input_tensors.size(), output_node_names.data(), output_node_names.size());
 
     // 获取输出张量
-    float *value = output_tensors[0].GetTensorMutableData<float>();
+    float value = *output_tensors[0].GetTensorMutableData<float>();
 
     float *output2 = output_tensors[1].GetTensorMutableData<float>();
     std::vector<int64_t> output2_shape = output_tensors[1].GetTensorTypeAndShapeInfo().GetShape();
@@ -123,7 +123,7 @@ std::pair<float, std::vector<float> > Model::evaluate_state(vector<vector<vector
         prior_prob.emplace_back(exp(output2[i]));
     }
 
-    return std::make_pair(*value, prior_prob);
+    return std::make_pair(value, prior_prob);
 }
 
 vector<vector<vector<float> > > Model::get_state(Game &game) {

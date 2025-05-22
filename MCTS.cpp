@@ -106,7 +106,8 @@ void MonteCarloTree::simulate(Game game, int i) {
     } else {
         auto moves = game.getMoves();
         auto state = Model::get_state(game);
-        auto [value, probs] = model->evaluate_state(state);
+        auto [eva_value, probs] = model->evaluate_state(state);
+        value = eva_value;
         node->expand(game, moves, probs);
     }
 
