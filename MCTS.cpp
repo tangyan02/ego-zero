@@ -71,8 +71,6 @@ void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_p
             child->prior_prob = prob;
         }
 
-        child->prior_prob = prob;
-
         children[move] = child;
     }
 
