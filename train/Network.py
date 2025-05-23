@@ -176,6 +176,7 @@ def get_state(game):
         k = k + 1
 
     # 判断自己是先还是后
+    k = limit * 2
     if game.current_player == 1:
         for x in range(game.board_size):
             for y in range(game.board_size):

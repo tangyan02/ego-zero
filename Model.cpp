@@ -11,7 +11,7 @@ std::wstring ConvertStringToWString(const std::string& str) {
 Model::Model() : memoryInfo(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)) {
 }
 
-void Model::init(string modelPath, string coreType) {
+void Model::init(string modelPath, string coreType)  {
     // 初始化环境
     env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
 
@@ -39,7 +39,9 @@ void Model::init(string modelPath, string coreType) {
         auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
         if ((cudaAvailable != providers.end())) //找到cuda列表
         {
-            memoryInfo = Ort::MemoryInfo("Cuda", OrtDeviceAllocator, 0, OrtMemTypeDefault);
+//            memoryInfo = new Ort::MemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator, 0, OrtMemTypeDefault);
+            //memoryInfo = &Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+
             std::cout << "found providers:" << std::endl;
             for (auto provider : providers)
                 std::cout << provider << std::endl;
@@ -65,7 +67,7 @@ void Model::init(string modelPath, string coreType) {
             sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
 
         }
-
+        cout << "cuda init finish" << endl;
     }
 
 
