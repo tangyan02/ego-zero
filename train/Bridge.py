@@ -31,10 +31,9 @@ def getFileData(shard_num):
     return training_data
 
 
-def run_program(shard, cppPath):
+def run_program(cppPath):
     # 执行可执行程序，传入参数shard
-    process = subprocess.Popen([cppPath, str(shard)], stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT)
+    process = subprocess.Popen([cppPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     # 持续打印输出
     for line in process.stdout:
@@ -45,9 +44,9 @@ def run_program(shard, cppPath):
 
     # 检查命令的返回码
     if process.returncode == 0:
-        print(f"Command execution successful for shard {shard}.")
+        print(f"Command execution successful.")
     else:
-        print(f"Command execution failed with return code {process.returncode} for shard {shard}.")
+        print(f"Command execution failed with return code {process.returncode}")
 
 
 if __name__ == '__main__':

@@ -18,7 +18,7 @@ void Model::init(string modelPath, string coreType) {
     // 初始化会话选项并添加模型
     sessionOptions = new Ort::SessionOptions();
     sessionOptions->SetIntraOpNumThreads(1);
-    sessionOptions->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+    sessionOptions->SetGraphOptimizationLevel(ORT_ENABLE_ALL);
 
     // 判断是否有GPU
     auto providers = Ort::GetAvailableProviders();
@@ -39,29 +39,31 @@ void Model::init(string modelPath, string coreType) {
         auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
         if ((cudaAvailable != providers.end())) //找到cuda列表
         {
+            memoryInfo = Ort::MemoryInfo("Cuda", OrtDeviceAllocator, 0, OrtMemTypeDefault);
             std::cout << "found providers:" << std::endl;
             for (auto provider : providers)
                 std::cout << provider << std::endl;
             std::cout << "use: CUDAExecutionProvider" << std::endl;
-            //OrtCUDAProviderOptions cudaProviderOptions;
-            //sessionOptions->AppendExecutionProvider_CUDA(cudaProviderOptions);
 
-
-            // 启用 CUDA 执行提供器
+            // CUDA 执行提供器配置
             OrtCUDAProviderOptions cuda_options;
-            cuda_options.device_id = 0;  // 使用第 0 块 GPU
-            cuda_options.arena_extend_strategy = 0;  // 动态显存分配（0=kNextPowerOfTwo, 1=kSameAsRequested）
-            cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearch::OrtCudnnConvAlgoSearchExhaustive;  // 使用最优卷积算法
-            cuda_options.do_copy_in_default_stream = false;  // 允许异步拷贝（提升多流性能）
-            cuda_options.gpu_mem_limit = 1ULL << 32;  // 限制显存使用（例如 4GB）
-            cuda_options.has_user_compute_stream = 0;  // 使用默认 CUDA 流（如需自定义流，设为 1）
+            cuda_options.device_id = 0;
+            cuda_options.arena_extend_strategy = 1;               // kSameAsRequested
+            cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchHeuristic;
+            cuda_options.do_copy_in_default_stream = false;       // 保持异步拷贝
+            cuda_options.gpu_mem_limit = 0;                       // 自动管理显存
+            cuda_options.has_user_compute_stream = 0;
 
             sessionOptions->AppendExecutionProvider_CUDA(cuda_options);
 
-            // 会话优化
+            // 会话优化配置
             sessionOptions->SetIntraOpNumThreads(1);
-            sessionOptions->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-            sessionOptions->EnableMemPattern();
+            sessionOptions->SetGraphOptimizationLevel(ORT_ENABLE_ALL);
+            sessionOptions->DisableMemPattern();                  // 禁用内存模式
+            sessionOptions->AddConfigEntry("disable_cpu_mem_buffer", "1");
+
+            sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
+
         }
 
     }

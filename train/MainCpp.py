@@ -1,5 +1,4 @@
 import time
-from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
@@ -7,8 +6,7 @@ import Bridge
 import Logger as Logger
 from Network import get_model, save_model
 from Train import train
-from Utils import getDevice, getTimeStr, dirPreBuild
-from multiprocessing import Pool
+from Utils import getDevice, dirPreBuild
 
 import sys
 
@@ -78,12 +76,7 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            futures = [executor.submit(Bridge.run_program, i, cppPath) for i in range(1)]
-
-            # 等待所有任务完成
-            for future in futures:
-                future.result()
+        Bridge.run_program(cppPath)
 
         training_data = Bridge.getFileData(num_processes)
 

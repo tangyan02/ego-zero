@@ -9,13 +9,7 @@
 
 using namespace std;
 
-void selfPlay(int argc, char *argv[]) {
-    // int shard = 0;
-    // if (argc > 1) {
-    //     string firstArg = argv[1];
-    //     cout << "current shard " << firstArg << endl;
-    //     shard = stoi(firstArg);
-    // }
+void selfPlay() {
 
     // Read configuration
     auto config = readConfigFile("application.conf");
@@ -56,18 +50,10 @@ void selfPlay(int argc, char *argv[]) {
         }
     }
 
-    //recordSelfPlay(
-    //    boardSize,
-    //    numGames,
-    //    numSimulation,
-    //    temperatureDefault,
-    //    explorationFactor,
-    //    shard,
-    //    &model);
 }
 
 int main(int argc, char *argv[]) {
     //  return startTest(argc, argv);
-    selfPlay(argc, argv);
+    selfPlay();
     return 0;
 }
