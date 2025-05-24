@@ -53,7 +53,6 @@ public:
 };
 
 class Game {
-    vector<Point> historyMoves;
 
     int pass_count = 0;
 

@@ -191,8 +191,8 @@ bool Game::isValidMove(int x, int y) {
                 tmpBoard.board[eaten_move.x][eaten_move.y] = 0;
             }
 
-            for (int i = 0; i < historyMoves.size(); i++) {
-                if (tmpBoard.eq(history[i], boardSize)) {
+            for (auto & t : history) {
+                if (tmpBoard.eq(t, boardSize)) {
                     return false;
                 }
             }
@@ -401,13 +401,8 @@ void Game::makeMove(int x, int y) {
         }
     }
 
-    recordToHistory();
-
     //更新落子历史
-    historyMoves.emplace_back(x, y);
-    if (historyMoves.size() > MAX_HISTORY_SIZE) {
-        historyMoves.erase(historyMoves.begin());
-    }
+    recordToHistory();
 
     currentPlayer = 3 - currentPlayer;
     pass_count = 0;
