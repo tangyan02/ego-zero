@@ -337,6 +337,21 @@ TEST_CASE("test_ko") {
     game.makeMove(3, 5);
 
     CHECK(!game.isValidMove(0,1));
+
+    game = Game(4);
+    data = {
+            {1, 2, 0, 2},
+            {0, 1, 2, 2},
+            {1, 2, 0, 2},
+            {0, 1, 2, 2}
+    };
+    game.currentPlayer = 1;
+    game.board.loadData(data);
+    game.refreshEatMoves();
+    game.refreshBannedMoves();
+    game.makeMove(2,2);
+    game.render();
+    CHECK(!game.isValidMove(2,1));
 }
 
 TEST_CASE("eat_move") {
