@@ -349,6 +349,7 @@ TEST_CASE("test_ko") {
     game.board.loadData(data);
     game.refreshEatMoves();
     game.refreshBannedMoves();
+    game.recordToHistory();
     game.makeMove(2,2);
     game.render();
     CHECK(!game.isValidMove(2,1));

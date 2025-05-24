@@ -106,6 +106,9 @@ public:
     //待测试
     void refreshEatMoves();
 
+    //记录到历史局面
+    void recordToHistory();
+
     //待补充
     void makeMove(int x, int y);
 
