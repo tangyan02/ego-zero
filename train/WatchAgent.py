@@ -51,8 +51,9 @@ while True:
     while True:
         if gameUi.next_move is not None:
             print("move")
-            line = callInCpp(f"MOVE {gameUi.next_move[0]},{gameUi.next_move[1]}")
-            game.make_move(gameUi.next_move[0], gameUi.next_move[1])
+            if game.board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:
+                line = callInCpp(f"MOVE {gameUi.next_move[0]},{gameUi.next_move[1]}")
+                game.make_move(gameUi.next_move[0], gameUi.next_move[1])
             gameUi.next_move = None
             visitCount = 0
             game.render()
