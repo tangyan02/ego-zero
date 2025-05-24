@@ -1,8 +1,11 @@
+import subprocess
+
 import Network
 import Utils
 from Game import Game
 from GameUI import GameUI
 from MCTS import MCTS, Node
+from train.ConfigReader import ConfigReader
 
 game = Game(board_size=9)
 game.render()
@@ -16,10 +19,29 @@ game = Game(board_size=board_size, device=Utils.getDevice(), tie_mu=tie_mu)
 
 hint = [0, True, True]
 
+ConfigReader.init()
+cppPath = ConfigReader.get("cppPath")
+
+# 启动C++子进程
+proc = subprocess.Popen(
+    [cppPath],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    text=True
+)
+
+
+def callInCpp(text):
+    proc.stdin.write(f"{x}\n")
+    proc.stdin.flush()  # 确保数据发送
+    return proc.stdout.readline().strip()
+
+
 while True:
 
     if game.end_game_check():
-        gameUi.render(game.board, f"胜利玩家 {game.calculate_winner()} 得分对比 {game.calculate_scores()[0]} : {game.calculate_scores()[1]}")
+        gameUi.render(game.board,
+                      f"胜利玩家 {game.calculate_winner()} 得分对比 {game.calculate_scores()[0]} : {game.calculate_scores()[1]}")
         continue
 
     if len(game.get_all_valid_moves()) == 0:
@@ -39,8 +61,14 @@ while True:
 
         probs = None
         if hint[game.current_player]:
-            mcts.search(game, 1)
-            probs = [(child.move[0], child.move[1], child.visits / mcts.root.visits) for child in
-                     mcts.root.children]
+            line = callInCpp("PREDICT  1")
+            probs_str = line.split(" ")
+            probs = [float(prob) for prob in probs_str]
 
-        gameUi.render(game.board, f"模拟次数: {mcts.root.visits} 当前比分: {game.calculate_scores()[0]} : {game.calculate_scores()[1]}", probs)
+            # mcts.search(game, 1)
+            # probs = [(child.move[0], child.move[1], child.visits / mcts.root.visits) for child in
+            #          mcts.root.children]
+
+        gameUi.render(game.board,
+                      f"模拟次数: {mcts.root.visits} 当前比分: {game.calculate_scores()[0]} : {game.calculate_scores()[1]}",
+                      probs)

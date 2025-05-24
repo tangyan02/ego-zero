@@ -5,14 +5,15 @@
 #include "Model.h"
 #include "test/TestAssistant.cpp"
 #include "SelfPlay.h"
-#include "ConfigReader.cpp"
+#include "ConfigReader.h"
+#include "Bridge.h"
 
 using namespace std;
 
 void selfPlay() {
 
     // Read configuration
-    auto config = readConfigFile("application.conf");
+    auto config = readConfigFile();
 
     // Parse parameters with defaults if not found
     int boardSize = config.count("boardSize") ? stoi(config["boardSize"]) : 9;
@@ -33,18 +34,18 @@ void selfPlay() {
     // 启动多个线程
     for (int i = 0; i < numProcesses; ++i) {
         threads.emplace_back(recordSelfPlay,
-            boardSize,
-            tieMu,
-            numGames,
-            numSimulation,
-            temperatureDefault,
-            explorationFactor,
-            i,
-            &model);
+                             boardSize,
+                             tieMu,
+                             numGames,
+                             numSimulation,
+                             temperatureDefault,
+                             explorationFactor,
+                             i,
+                             &model);
     }
 
     // 等待所有线程完成
-    for (auto& t : threads) {
+    for (auto &t: threads) {
         if (t.joinable()) {
             t.join();
         }
@@ -53,7 +54,15 @@ void selfPlay() {
 }
 
 int main(int argc, char *argv[]) {
-    //  return startTest(argc, argv);
-    selfPlay();
-    return 0;
+    auto config = readConfigFile();
+    if (config["mode"] == "train") {
+        selfPlay();
+        return 0;
+    }
+    if (config["mode"] == "predict") {
+        Bridge bridge;
+        bridge.startGame();
+        return 0;
+    }
+    return startTest(argc, argv);
 }

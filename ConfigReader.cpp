@@ -1,10 +1,5 @@
-#ifndef CONFIG_READER
-#define CONFIG_READER
 
-#include <fstream>
-#include <string>
-#include <map>
-#include <stdexcept>
+#include "ConfigReader.h"
 
 std::map<std::string, std::string> readConfigFile(const std::string& filename) {
     std::ifstream file(filename);
@@ -47,4 +42,3 @@ std::map<std::string, std::string> readConfigFile(const std::string& filename) {
     return config;
 }
 
-#endif //CONFIG_READER
