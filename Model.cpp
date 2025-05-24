@@ -42,10 +42,10 @@ void Model::init(string modelPath, string coreType)  {
 //            memoryInfo = new Ort::MemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator, 0, OrtMemTypeDefault);
             //memoryInfo = &Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
-            std::cout << "found providers:" << std::endl;
-            for (auto provider : providers)
-                std::cout << provider << std::endl;
-            std::cout << "use: CUDAExecutionProvider" << std::endl;
+            //std::cout << "found providers:" << std::endl;
+            //for (auto provider : providers)
+                //std::cout << provider << std::endl;
+            //std::cout << "use: CUDAExecutionProvider" << std::endl;
 
             // CUDA 执行提供器配置
             OrtCUDAProviderOptions cuda_options;
@@ -67,7 +67,7 @@ void Model::init(string modelPath, string coreType)  {
             sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
 
         }
-        cout << "cuda init finish" << endl;
+        //cout << "cuda init finish" << endl;
     }
 
 

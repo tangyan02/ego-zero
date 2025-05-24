@@ -22,7 +22,7 @@ void Bridge::move(int x, int y) {
 }
 
 
-vector<float> Bridge::predict(int simiNum) {
+vector<tuple<int, int, float>> Bridge::predict(int simiNum) {
 
     mcts->search(*game, node, simiNum);
 
@@ -31,16 +31,13 @@ vector<float> Bridge::predict(int simiNum) {
     std::tie(moves, moves_probs) = mcts->get_action_probabilities(*game);
 
     // 构造矩阵
-    vector<float> probs_matrix(game->boardSize * game->boardSize, 0);
+    vector<tuple<int,int,float>> probs;
 
-    if (!moves[0].isNull()) {
-        for (int k = 0; k < moves.size(); k++) {
-            auto p = moves[k];
-            probs_matrix[game->getMoveIndex(p.x, p.y)] = moves_probs[k];
-        }
+    for (int k = 0; k < moves.size(); k++) {
+        probs.emplace_back(moves[k].x,moves[k].y,moves_probs[k]);
     }
 
-    return probs_matrix;
+    return probs;
 }
 
 // 解析指令参数
@@ -69,6 +66,8 @@ Bridge::Bridge() {
 
     game = new Game(boardSize, tieMu);
     mcts = new MonteCarloTree(model, explorationFactor);
+
+    node = new Node();
 }
 
 void Bridge::startGame() {
@@ -104,8 +103,8 @@ void Bridge::startGame() {
             } else if (command == "PREDICT") {
                 int simiNum = stoi(args);
                 auto result = predict(simiNum);
-                for (const auto &item: result) {
-                    cout << item << " ";
+                for (const auto& [x, y, prob] : result) {
+                    cout << x << "," << y << "," << prob << " ";
                 }
                 cout << endl;
             } else {

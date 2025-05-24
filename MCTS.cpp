@@ -154,7 +154,10 @@ pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(Gam
     // 归一化为概率分布
     vector<float> action_probs;
     for (const int visit: visits) {
-        float prob = static_cast<float>(visit) / static_cast<float>(sum);
+        float prob = 0;
+        if (sum > 0) {
+            prob = static_cast<float>(visit) / static_cast<float>(sum);
+        }
         action_probs.push_back(prob);
     }
 

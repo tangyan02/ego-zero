@@ -29,7 +29,7 @@ private:
 
     void move(int x, int y);
 
-    vector<float> predict(int simiNum);
+    vector<tuple<int, int, float>> predict(int simiNum);
 };
 
 
