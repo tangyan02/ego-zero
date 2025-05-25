@@ -26,10 +26,6 @@ void selfPlay() {
     int numProcesses = config.count("numProcesses") ? stoi(config["numProcesses"]) : 1;
     string coreType = config.count("coreType") ? config["coreType"] : "cpu";
 
-
-    Model model;
-    model.init(modelPath, coreType);
-
     std::vector<std::thread> threads;
     // 启动多个线程
     for (int i = 0; i < numProcesses; ++i) {
@@ -41,7 +37,8 @@ void selfPlay() {
                              temperatureDefault,
                              explorationFactor,
                              i,
-                             &model);
+                             &modelPath,
+                             &coreType);
     }
 
     // 等待所有线程完成

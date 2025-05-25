@@ -25,6 +25,7 @@ void recordSelfPlay(
         float temperatureDefault,
         float explorationFactor,
         int shard,
-        Model* model);
+        string* modelPath,
+        string* coreType);
 
 #endif //SELFPLAY_H

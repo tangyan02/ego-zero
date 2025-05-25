@@ -154,14 +154,19 @@ void recordSelfPlay(
     float temperatureDefault,
     float explorationFactor,
     int shard,
-    Model *model) {
+    string* modelPath,
+    string* coreType) {
     try {
+
+        Model model;
+        model.init(*modelPath, *coreType);
+
         // 创建文件流对象
         std::ofstream file("record/data_" + to_string(shard) + ".txt");
 
         if (file.is_open()) {
             auto data = selfPlay(shard, boardSize, tieMu, numGames, numSimulations,
-                                 temperatureDefault, explorationFactor, *model);
+                                 temperatureDefault, explorationFactor, model);
             file << data.size() << endl;
             std::cout << "data count " << data.size() << endl;
             for (auto &item: data) {

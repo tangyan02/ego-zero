@@ -43,12 +43,14 @@ void Model::init(string modelPath, string coreType) {
         sessionOptions->AppendExecutionProvider("CoreML", provider_options);
     }
 
+#ifdef _WIN32
     if (coreType == "tensorRT") {
 
         int device_id = 0;
         Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_Tensorrt(*sessionOptions, device_id));
         Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(*sessionOptions, device_id));
     }
+#endif //_WIN32
 
     if (coreType == "cuda") {
 
