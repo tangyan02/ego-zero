@@ -25,11 +25,22 @@ private:
     MonteCarloTree *mcts;
     Node *node;
 
-    void parse_coordinates(const string &args, int &x, int &y);
+    Point parse_coordinates(const string &args);
 
-    void move(int x, int y);
+    void move(string& args);
 
-    vector<tuple<int, int, float>> predict(int simiNum);
+    void predict(string& args);
+
+    void end_check(string& args);
+
+    void winner_check(string& args);
+
+    void current_player(string& args);
+
+    void board(string& args);
+
+    void get_moves(string& args);
+
 };
 
 
