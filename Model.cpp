@@ -43,12 +43,19 @@ void Model::init(string modelPath, string coreType) {
         sessionOptions->AppendExecutionProvider("CoreML", provider_options);
     }
 
-    if (coreType == "gpu") {
+    if (coreType == "tensorRT") {
+
+        int device_id = 0;
+        Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_Tensorrt(*sessionOptions, device_id));
+        Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(*sessionOptions, device_id));
+    }
+
+    if (coreType == "cuda") {
 
         auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
         if ((cudaAvailable != providers.end())) //找到cuda列表
         {
-//            memoryInfo = new Ort::MemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator, 0, OrtMemTypeDefault);
+            //memoryInfo = Ort::MemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator, 0, OrtMemTypeDefault);
             //memoryInfo = &Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
             //std::cout << "found providers:" << std::endl;
