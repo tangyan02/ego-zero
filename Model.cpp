@@ -153,7 +153,7 @@ vector<vector<vector<float> > > Model::get_state(Game &game) {
     vector result(limit * 2 + 1, vector(game.boardSize, vector(game.boardSize, 0.0f)));;
 
     int k = 0;
-    for (int i = game.history.size() - 1; i >= 0 && i >= game.history.size() - limit; i--) {
+    for (int i = int(game.history.size()) - 1; i >= 0 && i >= int(game.history.size()) - limit; i--) {
         auto board = game.history[i];
         for (int x = 0; x < game.boardSize; x++) {
             for (int y = 0; y < game.boardSize; y++) {
@@ -166,7 +166,7 @@ vector<vector<vector<float> > > Model::get_state(Game &game) {
     }
 
     k = limit;
-    for (int i = game.history.size() - 1; i >= 0 && i >= game.history.size() - limit; i--) {
+    for (int i = int(game.history.size()) - 1; i >= 0 && i >= int(game.history.size()) - limit; i--) {
         auto board = game.history[i];
         for (int x = 0; x < game.boardSize; x++) {
             for (int y = 0; y < game.boardSize; y++) {

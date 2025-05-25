@@ -351,7 +351,6 @@ TEST_CASE("test_ko") {
     game.refreshBannedMoves();
     game.recordToHistory();
     game.makeMove(2,2);
-    game.render();
     CHECK(!game.isValidMove(2,1));
 }
 
@@ -367,4 +366,17 @@ TEST_CASE("eat_move") {
     game.refreshBannedMoves();
     game.refreshEatMoves();
     CHECK(game.isValidMove(0, 0));
+}
+
+TEST_CASE("roll_back") {
+    auto game = Game(4);
+    game.makeMove(0,0);
+    game.makeMove(0,1);
+    game.rollback();
+
+    CHECK(game.history.size() == 1);
+    CHECK(game.currentPlayer == 2);
+    CHECK(game.isValidMove(0,1));
+    CHECK(!game.isValidMove(0,0));
+
 }

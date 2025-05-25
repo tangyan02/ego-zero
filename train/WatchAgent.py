@@ -108,6 +108,8 @@ while True:
         continue
 
     while True:
+        if gameUi.rollback:
+
 
         if gameUi.next_move is not None:
             if board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:

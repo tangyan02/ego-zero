@@ -8,6 +8,7 @@ BLACK_STONE_COLOR = (0, 0, 0)
 WHITE_STONE_COLOR = (255, 255, 255)
 TEXT_COLOR = (0, 0, 0)  # 文字颜色
 
+
 class GameUI:
 
     def __init__(self, board_size):
@@ -22,6 +23,10 @@ class GameUI:
         self.screen = pygame.display.set_mode((self.window_size, self.window_size))
         # 状态栏高度
         self.status_bar_height = 50
+        # 回滚按钮宽高
+        self.rollback_btn_height = 30
+        self.rollback_btn_width = 40
+
         # 创建窗口，包含状态栏高度
         self.screen = pygame.display.set_mode((self.window_size, self.window_size + self.status_bar_height))
         try:
@@ -32,6 +37,7 @@ class GameUI:
             self.font = pygame.font.Font(None, 20)
 
         self.next_move = None
+        self.rollback = False
 
         pygame.display.set_caption("围棋棋盘")
 
@@ -94,8 +100,13 @@ class GameUI:
 
         # 绘制文字信息栏
         text_surface = self.font.render(info_text, True, TEXT_COLOR)
-        text_rect = text_surface.get_rect(center=(self.window_size // 2, self.window_size + self.status_bar_height // 2))
+        text_rect = text_surface.get_rect(
+            center=(self.window_size // 2, self.window_size + self.status_bar_height // 2))
         self.screen.blit(text_surface, text_rect)
+
+        # 绘制回滚按钮
+        pygame.draw.rect(self.screen, (235, 226, 185),
+                         (0, self.window_size, self.rollback_btn_width, self.rollback_btn_height))
 
         # 更新显示
         pygame.display.flip()
@@ -112,7 +123,8 @@ class GameUI:
                 offset_x = (self.window_size - (self.board_size - 1) * self.cell_size) // 2
                 offset_y = (self.window_size - (self.board_size - 1) * self.cell_size) // 2
                 # 判断点击位置是否在棋盘范围内
-                if offset_x <= mouse_x <= offset_x + (self.board_size - 1) * self.cell_size and offset_y <= mouse_y <= offset_y + (
+                if offset_x <= mouse_x <= offset_x + (
+                        self.board_size - 1) * self.cell_size and offset_y <= mouse_y <= offset_y + (
                         self.board_size - 1) * self.cell_size:
                     # 计算点击的格子坐标
                     # 找到离点击位置最近的网格交叉点

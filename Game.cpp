@@ -191,7 +191,7 @@ bool Game::isValidMove(int x, int y) {
                 tmpBoard.board[eaten_move.x][eaten_move.y] = 0;
             }
 
-            for (int i = history.size() - 1; i >= 0 && i >= history.size() - HISTORY_LiMIT; i--) {
+            for (int i = history.size() - 1; i >= 0 && i >= (int(history.size()) - HISTORY_LiMIT); i--) {
                 auto t = history[i];
                 if (tmpBoard.eq(t, boardSize)) {
                     return false;
@@ -448,5 +448,26 @@ void Game::recordToHistory() {
         }
     }
     history.emplace_back(boardTmp);
+}
 
+void Game::rollback() {
+    if (history.size() > 1) {
+        Board last = history[history.size() - 2];
+        this->board = last;
+
+        currentPlayer = 3 - currentPlayer;
+        history.pop_back();
+
+    } else {
+        currentPlayer = 1;
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                this->board.board[i][j] = 0;
+            }
+        }
+        history.clear();
+    }
+
+    refreshBannedMoves();
+    refreshEatMoves();
 }
