@@ -11,7 +11,7 @@ std::wstring ConvertStringToWString(const std::string& str) {
 Model::Model() : memoryInfo(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)) {
 }
 
-void Model::init(string modelPath, string coreType)  {
+void Model::init(string modelPath, string coreType) {
     // 初始化环境
     env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
 
@@ -34,6 +34,15 @@ void Model::init(string modelPath, string coreType)  {
     //    sessionOptions->AppendExecutionProvider_TensorRT(tensorRtProviderOptions);
     //}
 
+    if (coreType == "apple") {
+        std::unordered_map<std::string, std::string> provider_options;
+        provider_options["ModelFormat"] = "MLProgram";
+        provider_options["MLComputeUnits"] = "ALL";
+        provider_options["RequireStaticInputShapes"] = "0";
+        provider_options["EnableOnSubgraphs"] = "0";
+        sessionOptions->AppendExecutionProvider("CoreML", provider_options);
+    }
+
     if (coreType == "gpu") {
 
         auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
@@ -44,7 +53,7 @@ void Model::init(string modelPath, string coreType)  {
 
             //std::cout << "found providers:" << std::endl;
             //for (auto provider : providers)
-                //std::cout << provider << std::endl;
+            //std::cout << provider << std::endl;
             //std::cout << "use: CUDAExecutionProvider" << std::endl;
 
             // CUDA 执行提供器配置
