@@ -45,6 +45,7 @@ def handle_predict():
 
 
 def handle_move(x, y):
+    print(f"move {x},{y}")
     callInCpp(f"MOVE {x},{y}")
 
 
@@ -61,6 +62,7 @@ def handle_get_moves():
         items = str.split(",")
         x = int(items[0])
         y = int(items[1])
+        moves.append((x, y))
     return moves
 
 
@@ -84,7 +86,7 @@ def handle_board():
 
 
 def handle_winner():
-    line = callInCpp("CURRENT_PLAYER")
+    line = callInCpp("WINNER_CHECK")
     arr = line.strip().split(" ")
     winner = int(arr[0])
     black = float(arr[1])
@@ -108,7 +110,6 @@ while True:
     while True:
 
         if gameUi.next_move is not None:
-            print("move")
             if board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:
                 handle_move(gameUi.next_move[0], gameUi.next_move[1])
             gameUi.next_move = None
