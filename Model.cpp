@@ -83,7 +83,6 @@ void Model::init(string modelPath, string coreType) {
             sessionOptions->AddConfigEntry("disable_cpu_mem_buffer", "1");
 
             sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
-
         }
         //cout << "cuda init finish" << endl;
     }
