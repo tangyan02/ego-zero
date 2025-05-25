@@ -14,12 +14,11 @@ Model::Model() : memoryInfo(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMem
 void Model::init(string modelPath, string coreType) {
     // 初始化环境
     env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
-
+    //env = new Ort::Env(ORT_LOGGING_LEVEL_VERBOSE, "onnxruntime"); // 启用详细日志
     // 初始化会话选项并添加模型
     sessionOptions = new Ort::SessionOptions();
     sessionOptions->SetIntraOpNumThreads(1);
     sessionOptions->SetGraphOptimizationLevel(ORT_ENABLE_ALL);
-
     // 判断是否有GPU
     auto providers = Ort::GetAvailableProviders();
     //看看有没有GPU支持列表
@@ -57,6 +56,7 @@ void Model::init(string modelPath, string coreType) {
         auto cudaAvailable = std::find(providers.begin(), providers.end(), "CUDAExecutionProvider");
         if ((cudaAvailable != providers.end())) //找到cuda列表
         {
+
             //memoryInfo = Ort::MemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator, 0, OrtMemTypeDefault);
             //memoryInfo = &Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
@@ -67,22 +67,23 @@ void Model::init(string modelPath, string coreType) {
 
             // CUDA 执行提供器配置
             OrtCUDAProviderOptions cuda_options;
-            cuda_options.device_id = 0;
-            cuda_options.arena_extend_strategy = 1;               // kSameAsRequested
-            cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchHeuristic;
-            cuda_options.do_copy_in_default_stream = false;       // 保持异步拷贝
-            cuda_options.gpu_mem_limit = 0;                       // 自动管理显存
-            cuda_options.has_user_compute_stream = 0;
+            //cuda_options.device_id = 0;
+            //cuda_options.arena_extend_strategy = 1;               // kSameAsRequested
+            //cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchHeuristic;
+            //cuda_options.do_copy_in_default_stream = false;       // 保持异步拷贝
+            //cuda_options.gpu_mem_limit = 0;                       // 自动管理显存
+            //cuda_options.has_user_compute_stream = 0;
+            
 
             sessionOptions->AppendExecutionProvider_CUDA(cuda_options);
 
+            //sessionOptions->AddConfigEntry("cuda.deterministic_compute", "1"); // 确定性计算
             // 会话优化配置
-            sessionOptions->SetIntraOpNumThreads(1);
-            sessionOptions->SetGraphOptimizationLevel(ORT_ENABLE_ALL);
-            sessionOptions->DisableMemPattern();                  // 禁用内存模式
-            sessionOptions->AddConfigEntry("disable_cpu_mem_buffer", "1");
-
-            sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
+            //sessionOptions->SetIntraOpNumThreads(1);
+            //sessionOptions->SetGraphOptimizationLevel(ORT_ENABLE_ALL);
+            //sessionOptions->DisableMemPattern();                  // 禁用内存模式
+            //sessionOptions->AddConfigEntry("disable_cpu_mem_buffer", "1");
+            //sessionOptions->AddConfigEntry("optimization.enable_mixed_precision", "1");
         }
         //cout << "cuda init finish" << endl;
     }
