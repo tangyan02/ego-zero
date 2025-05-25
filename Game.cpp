@@ -191,7 +191,8 @@ bool Game::isValidMove(int x, int y) {
                 tmpBoard.board[eaten_move.x][eaten_move.y] = 0;
             }
 
-            for (auto & t : history) {
+            for (int i = history.size() - 1; i >= 0 && i >= history.size() - HISTORY_LiMIT; i--) {
+                auto t = history[i];
                 if (tmpBoard.eq(t, boardSize)) {
                     return false;
                 }
@@ -448,8 +449,4 @@ void Game::recordToHistory() {
     }
     history.emplace_back(boardTmp);
 
-    //检查历史长度是否超过8，如果超过则截取
-    if (history.size() > MAX_HISTORY_SIZE) {
-        history.erase(history.begin());
-    }
 }

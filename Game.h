@@ -8,7 +8,7 @@
 #include <algorithm>
 
 const int MAX_BOARD_SIZE = 19;
-const int MAX_HISTORY_SIZE = 8;
+const int HISTORY_LiMIT = 8;
 
 #define NONE_P 0
 #define BLACK 1

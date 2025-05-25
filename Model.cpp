@@ -73,7 +73,7 @@ void Model::init(string modelPath, string coreType) {
             //cuda_options.do_copy_in_default_stream = false;       // 保持异步拷贝
             //cuda_options.gpu_mem_limit = 0;                       // 自动管理显存
             //cuda_options.has_user_compute_stream = 0;
-            
+
 
             sessionOptions->AppendExecutionProvider_CUDA(cuda_options);
 
@@ -153,7 +153,7 @@ vector<vector<vector<float> > > Model::get_state(Game &game) {
     vector result(limit * 2 + 1, vector(game.boardSize, vector(game.boardSize, 0.0f)));;
 
     int k = 0;
-    for (int i = game.history.size() - 1; i >= 0; i--) {
+    for (int i = game.history.size() - 1; i >= 0 && i >= game.history.size() - limit; i--) {
         auto board = game.history[i];
         for (int x = 0; x < game.boardSize; x++) {
             for (int y = 0; y < game.boardSize; y++) {
@@ -166,7 +166,7 @@ vector<vector<vector<float> > > Model::get_state(Game &game) {
     }
 
     k = limit;
-    for (int i = game.history.size() - 1; i >= 0; i--) {
+    for (int i = game.history.size() - 1; i >= 0 && i >= game.history.size() - limit; i--) {
         auto board = game.history[i];
         for (int x = 0; x < game.boardSize; x++) {
             for (int y = 0; y < game.boardSize; y++) {
