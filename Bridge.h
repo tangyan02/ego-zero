@@ -41,6 +41,7 @@ private:
 
     void get_moves(string& args);
 
+    void rollback(string& args);
 };
 
 

@@ -23,12 +23,17 @@ class GameUI:
         self.screen = pygame.display.set_mode((self.window_size, self.window_size))
         # 状态栏高度
         self.status_bar_height = 50
+
+        # 操作区域高度
+        self.operation_bar_height = 50
+
         # 回滚按钮宽高
         self.rollback_btn_height = 30
         self.rollback_btn_width = 40
 
         # 创建窗口，包含状态栏高度
-        self.screen = pygame.display.set_mode((self.window_size, self.window_size + self.status_bar_height))
+        self.screen = pygame.display.set_mode((self.window_size,
+                                               self.window_size + self.status_bar_height + self.operation_bar_height))
         try:
             # 尝试加载黑体字体
             self.font = pygame.font.Font('font/msyhbd.ttc', 20)
@@ -95,18 +100,24 @@ class GameUI:
                 prob_rect = prob_surface.get_rect(center=(prob_x, prob_y))
                 self.screen.blit(prob_surface, prob_rect)
 
+        # 绘制操作区域
+        pygame.draw.rect(self.screen, (200, 200, 200),
+                         (0, self.window_size, self.window_size, self.operation_bar_height))
+
+        text_surface = self.font.render("回滚", True, TEXT_COLOR)
+        text_rect = text_surface.get_rect(
+            center=(self.window_size // 2, self.window_size + self.operation_bar_height // 2))
+        self.screen.blit(text_surface, text_rect)
+
         # 绘制状态栏背景
-        pygame.draw.rect(self.screen, (220, 220, 220), (0, self.window_size, self.window_size, self.status_bar_height))
+        pygame.draw.rect(self.screen, (220, 220, 220),
+                         (0, self.window_size + self.operation_bar_height, self.window_size, self.status_bar_height))
 
         # 绘制文字信息栏
         text_surface = self.font.render(info_text, True, TEXT_COLOR)
         text_rect = text_surface.get_rect(
-            center=(self.window_size // 2, self.window_size + self.status_bar_height // 2))
+            center=(self.window_size // 2, self.window_size + self.operation_bar_height + self.status_bar_height // 2))
         self.screen.blit(text_surface, text_rect)
-
-        # 绘制回滚按钮
-        pygame.draw.rect(self.screen, (235, 226, 185),
-                         (0, self.window_size, self.rollback_btn_width, self.rollback_btn_height))
 
         # 更新显示
         pygame.display.flip()
@@ -134,6 +145,9 @@ class GameUI:
                     x = max(0, min(x, self.board_size - 1))
                     y = max(0, min(y, self.board_size - 1))
                     self.next_move = (y, x)
+
+                if self.window_size < mouse_y < self.window_size + self.operation_bar_height:
+                    self.rollback = True
 
         threading.Thread(target=self.render_task, args=(board, text, probability_list)).start()
 

@@ -1,11 +1,10 @@
+import os
 import subprocess
 
 import numpy as np
 
 from GameUI import GameUI
 from train.ConfigReader import ConfigReader
-
-gameUi = GameUI(board_size=9)
 
 board_size = 9
 tie_mu = 3.25
@@ -93,37 +92,44 @@ def handle_winner():
     white = float(arr[2])
     return winner, black, white
 
+def handle_rollback():
+    callInCpp("ROLLBACK")
 
-board = np.zeros((board_size, board_size), dtype=np.uint8)
-while True:
-
-    if handle_end_check():
-        winner, black, white = handle_winner()
-        gameUi.render(board, f"胜利玩家 {winner} 得分对比 {black} : {white}")
-        continue
-
-    moves = handle_get_moves()
-    if len(moves) == 1 and moves[0][0] == -1:
-        handle_move(moves[0][0], moves[0][1])
-        continue
-
+if __name__ == '__main__':
+    os.environ["SDL_RENDER_DRIVER"] = "opengl"
+    gameUi = GameUI(board_size=9)
+    board = np.zeros((board_size, board_size), dtype=np.uint8)
     while True:
-        if gameUi.rollback:
 
+        if handle_end_check():
+            winner, black, white = handle_winner()
+            gameUi.render(board, f"胜利玩家 {winner} 得分对比 {black} : {white}")
+            continue
 
-        if gameUi.next_move is not None:
-            if board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:
-                handle_move(gameUi.next_move[0], gameUi.next_move[1])
-            gameUi.next_move = None
-            visitCount = 0
-            break
+        moves = handle_get_moves()
+        if len(moves) == 1 and moves[0][0] == -1:
+            handle_move(moves[0][0], moves[0][1])
+            continue
 
-        probs = None
-        if hint[handle_current_player()]:
-            visitCount += 1
-            probs = handle_predict()
+        while True:
+            if gameUi.rollback:
+                handle_rollback()
+                gameUi.rollback = False
+                break
 
-        board = handle_board()
-        gameUi.render(board,
-                      f"模拟次数: {visitCount}",
-                      probs)
+            if gameUi.next_move is not None:
+                if board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:
+                    handle_move(gameUi.next_move[0], gameUi.next_move[1])
+                gameUi.next_move = None
+                visitCount = 0
+                break
+
+            probs = None
+            if hint[handle_current_player()]:
+                visitCount += 1
+                probs = handle_predict()
+
+            board = handle_board()
+            gameUi.render(board,
+                          f"模拟次数: {visitCount}",
+                          probs)

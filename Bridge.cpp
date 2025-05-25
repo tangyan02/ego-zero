@@ -69,6 +69,8 @@ void Bridge::startGame() {
                 board(args);
             } else if (command == "GET_MOVES") {
                 get_moves(args);
+            } else if (command == "ROLLBACK") {
+                rollback(args);
             } else {
                 throw invalid_argument("Unknown command");
             }
@@ -150,4 +152,10 @@ void Bridge::get_moves(string &args) {
         cout << point.x << "," << point.y << " ";
     }
     cout << endl;
+}
+
+void Bridge::rollback(string& args)
+{
+    game->rollback();
+    cout<<"rollback finish"<<endl;
 }
