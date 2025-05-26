@@ -27,10 +27,6 @@ class GameUI:
         # 操作区域高度
         self.operation_bar_height = 50
 
-        # 回滚按钮宽高
-        self.rollback_btn_height = 30
-        self.rollback_btn_width = 40
-
         # 创建窗口，包含状态栏高度
         self.screen = pygame.display.set_mode((self.window_size,
                                                self.window_size + self.status_bar_height + self.operation_bar_height))
@@ -43,6 +39,7 @@ class GameUI:
 
         self.next_move = None
         self.rollback = False
+        self.auto = False
 
         pygame.display.set_caption("围棋棋盘")
 

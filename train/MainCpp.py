@@ -1,3 +1,4 @@
+import json
 import time
 
 import numpy as np
@@ -87,7 +88,7 @@ if __name__ == "__main__":
         Logger.infoD(f"完成扩展自我对弈数据，条数 " + str(len(extended_data)) + " , " + str(
             round(len(extended_data) / (end_time - start_time), 1)) + " 条/s")
 
-        train(extended_data, model, device, optimizer, batch_size, i_episode)
+        loss = train(extended_data, model, device, optimizer, batch_size, i_episode)
 
         save_model(model, optimizer, board_size)
         Logger.infoD(f"最新模型已保存 episode:{i_episode}")
@@ -97,3 +98,12 @@ if __name__ == "__main__":
         # 更新计数
         count = num_processes * numGames
         total_games_count = update_count(count)
+
+        # 记录迭代信息
+        episodeInfo = {
+            "i_episode" : i_episode,
+            "loss": loss,
+            "total_games_count" : total_games_count
+        }
+        Logger.infoD(json.dumps(episodeInfo), "episode.log")
+

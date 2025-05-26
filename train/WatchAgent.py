@@ -117,6 +117,7 @@ if __name__ == '__main__':
                 gameUi.rollback = False
                 break
 
+
             if gameUi.next_move is not None:
                 if board[gameUi.next_move[0]][gameUi.next_move[1]] == 0:
                     handle_move(gameUi.next_move[0], gameUi.next_move[1])
@@ -128,6 +129,13 @@ if __name__ == '__main__':
             if hint[handle_current_player()]:
                 visitCount += 1
                 probs = handle_predict()
+
+            if gameUi.auto:
+                max_move = max(probs, key=lambda x: x[2])
+                handle_move(max_move[0], max_move[1])
+                gameUi.auto = False
+                visitCount = 0
+                break
 
             board = handle_board()
             gameUi.render(board,

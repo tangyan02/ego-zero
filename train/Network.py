@@ -6,8 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 
-import Utils
-from Game import Game
 import onnxruntime as ort
 import onnx
 
@@ -145,45 +143,6 @@ def save_model(model, optimizer, boardSize, fp16=False):
     model.train()
 
 
-def evaluate_state(model, state):
-    ret = model(state)
-    value, probs = ret[0].item(), torch.exp(ret[1]).cpu().detach().numpy()
-    return value, probs
-
-
-def get_state(game):
-    limit = 8
-    # 直接创建 NumPy 数组
-    numpy_array = np.zeros((limit * 2 + 1, game.board_size, game.board_size))
-    k = 0
-    for board in game.history[-limit:][::-1]:
-        for x in range(game.board_size):
-            for y in range(game.board_size):
-                if board[x][y] == game.current_player:
-                    numpy_array[k, x, y] = 1
-                else:
-                    numpy_array[k, x, y] = 0
-        k = k + 1
-
-    k = limit
-    for board in game.history[-limit:][::-1]:
-        for x in range(game.board_size):
-            for y in range(game.board_size):
-                if board[x][y] == 3 - game.current_player:
-                    numpy_array[k, x, y] = 1
-                else:
-                    numpy_array[k, x, y] = 0
-        k = k + 1
-
-    # 判断自己是先还是后
-    k = limit * 2
-    if game.current_player == 1:
-        for x in range(game.board_size):
-            for y in range(game.board_size):
-                numpy_array[k, x, y] = 1
-
-    return numpy_array
-
 
 def load_onnx_model(model_path):
     """
@@ -238,37 +197,3 @@ def evaluate_state_onnx(onnx_model, input):
     probs = np.exp(probs[0])
     return value, probs
 
-
-if __name__ == "__main__":
-    # 测试代码
-    board_size = 9
-
-    model, optimizer = get_model(device=Utils.getDevice(), lr=0.01)
-    save_model(model, optimizer, board_size)
-    data = """
-    x x x x o x o o .
-    . x . x o . o . o
-    x x x x o o o o .
-    x . o . . o . o o
-    x . x . o o x o o
-    . x . . . o o . o
-    . . . . x o . o x
-    . x . . . . . . x
-    . . . . . . x x x
-    """
-    game = Game(board_size)
-    game.parse(data)
-
-    onnx_session = load_onnx_model('model/model_latest.onnx')
-    # 获取输入状态
-    state = get_state(game)
-    # 进行 ONNX 推理
-    value, probs = evaluate_state_onnx(onnx_session, state)
-    print("ONNX 推理结果:", value, probs)
-
-    # prob = onnx_outputs[1].reshape(9, 9)
-    # print(prob)
-
-    # predicted_values, predicted_action_logits = model(state)
-    # print("predicted_values, predicted_action_logits shape", predicted_values.shape, predicted_action_logits.shape)
-    # print(predicted_values, predicted_action_logits)
