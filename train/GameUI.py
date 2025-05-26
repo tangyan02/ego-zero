@@ -29,7 +29,7 @@ class GameUI:
 
         # 创建窗口，包含状态栏高度
         self.screen = pygame.display.set_mode((self.window_size,
-                                               self.window_size + self.status_bar_height + self.operation_bar_height))
+                                               self.window_size + self.status_bar_height + self.operation_bar_height * 2))
         try:
             # 尝试加载黑体字体
             self.font = pygame.font.Font('font/msyhbd.ttc', 20)
@@ -98,22 +98,36 @@ class GameUI:
                 self.screen.blit(prob_surface, prob_rect)
 
         # 绘制操作区域
-        pygame.draw.rect(self.screen, (200, 200, 200),
+        pygame.draw.rect(self.screen, (180, 180, 180),
                          (0, self.window_size, self.window_size, self.operation_bar_height))
+
+        text_surface = self.font.render("自动落子", True, TEXT_COLOR)
+        text_rect = text_surface.get_rect(
+            center=(self.window_size // 2
+                    , self.window_size + self.operation_bar_height // 2))
+        self.screen.blit(text_surface, text_rect)
+
+        pygame.draw.rect(self.screen, (200, 200, 200),
+                         (0, self.window_size + self.operation_bar_height, self.window_size, self.operation_bar_height))
 
         text_surface = self.font.render("回滚", True, TEXT_COLOR)
         text_rect = text_surface.get_rect(
-            center=(self.window_size // 2, self.window_size + self.operation_bar_height // 2))
+            center=(self.window_size // 2
+                    , self.window_size + self.operation_bar_height + self.operation_bar_height // 2))
         self.screen.blit(text_surface, text_rect)
 
         # 绘制状态栏背景
         pygame.draw.rect(self.screen, (220, 220, 220),
-                         (0, self.window_size + self.operation_bar_height, self.window_size, self.status_bar_height))
+                         (0
+                          , self.window_size + self.operation_bar_height * 2
+                          , self.window_size
+                          , self.status_bar_height))
 
         # 绘制文字信息栏
         text_surface = self.font.render(info_text, True, TEXT_COLOR)
         text_rect = text_surface.get_rect(
-            center=(self.window_size // 2, self.window_size + self.operation_bar_height + self.status_bar_height // 2))
+            center=(self.window_size // 2,
+                    self.window_size + self.operation_bar_height * 2 + self.status_bar_height // 2))
         self.screen.blit(text_surface, text_rect)
 
         # 更新显示
@@ -144,6 +158,9 @@ class GameUI:
                     self.next_move = (y, x)
 
                 if self.window_size < mouse_y < self.window_size + self.operation_bar_height:
+                    self.auto = True
+
+                if self.window_size + self.operation_bar_height < mouse_y < self.window_size + self.operation_bar_height * 2:
                     self.rollback = True
 
         threading.Thread(target=self.render_task, args=(board, text, probability_list)).start()
