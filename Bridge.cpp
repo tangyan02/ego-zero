@@ -157,5 +157,7 @@ void Bridge::get_moves(string &args) {
 void Bridge::rollback(string& args)
 {
     game->rollback();
+    delete node;
+    node = new Node();
     cout<<"rollback finish"<<endl;
 }
