@@ -13,7 +13,8 @@ Model::Model() : memoryInfo(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMem
 
 void Model::init(string modelPath, string coreType) {
     // 初始化环境
-    env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
+    env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "ModelInference");
+    // env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "ModelInference");
     //env = new Ort::Env(ORT_LOGGING_LEVEL_VERBOSE, "onnxruntime"); // 启用详细日志
     // 初始化会话选项并添加模型
     sessionOptions = new Ort::SessionOptions();
@@ -32,7 +33,6 @@ void Model::init(string modelPath, string coreType) {
     //    OrtTensorRTProviderOptions tensorRtProviderOptions;
     //    sessionOptions->AppendExecutionProvider_TensorRT(tensorRtProviderOptions);
     //}
-
     if (coreType == "apple") {
         std::unordered_map<std::string, std::string> provider_options;
         provider_options["ModelFormat"] = "MLProgram";
