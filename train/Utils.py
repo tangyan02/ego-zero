@@ -7,6 +7,7 @@ import torch
 def getTimeStr():
     return time.strftime("[%Y-%m-%d %H:%M:%S] ", time.localtime())
 
+
 def dirPreBuild():
     if not os.path.exists("model"):
         os.mkdir("model")
@@ -15,6 +16,7 @@ def dirPreBuild():
     if not os.path.exists(f"log"):
         os.mkdir("log")
 
+
 def getDevice():
     device = "cpu"
     if torch.cuda.is_available():
@@ -22,5 +24,5 @@ def getDevice():
     if hasattr(torch.backends, "mps"):
         if torch.backends.mps.is_available():
             device = "mps"
-    # print(device)
+    print("device:", device)
     return device
