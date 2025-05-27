@@ -3,7 +3,6 @@
 //
 
 #include "MCTS.h"
-#include "Utils.h"
 
 using namespace std;
 
@@ -38,30 +37,27 @@ Node *Node::selectChild(double exploration_factor) {
 }
 
 void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_probs) {
-  
     //特殊处理跳过的情况
     vector<float> probs_arr;
     if (moves.size() > 1) {
-        for (auto& move : moves) {
+        for (auto &move: moves) {
             int moveIndex = game.getMoveIndex(move.x, move.y);
             probs_arr.emplace_back(prior_probs[moveIndex]);
         }
-    }
-    else {
+    } else {
         probs_arr.emplace_back(1);
     }
 
     // 计算概率总和
     float sum_probs = 0.0;
-    for (auto& prob : probs_arr) {
+    for (auto &prob: probs_arr) {
         sum_probs += prob;
     }
 
-    for (int i = 0;i < moves.size();i++) {
+    for (int i = 0; i < moves.size(); i++) {
         auto move = moves[i];
         auto prob = probs_arr[i];
-        Node* child = new Node(this);
-        int moveIndex = game.getMoveIndex(move.x, move.y);
+        Node *child = new Node(this);
         child->move = move;
 
         // 归一化处理
@@ -73,7 +69,6 @@ void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_p
 
         children[move] = child;
     }
-
 }
 
 void Node::update(double value) {
@@ -81,8 +76,8 @@ void Node::update(double value) {
     value_sum += value;
 }
 
-MonteCarloTree::MonteCarloTree(Model *model, float exploration_factor)
-    : model(model), root(nullptr), exploration_factor(exploration_factor) {
+MonteCarloTree::MonteCarloTree(Model *model, float exploration_factor, bool useNoice)
+    : model(model), root(nullptr), exploration_factor(exploration_factor), useNoice(useNoice) {
 }
 
 void MonteCarloTree::simulate(Game game, int i) {
@@ -108,6 +103,11 @@ void MonteCarloTree::simulate(Game game, int i) {
         auto state = Model::get_state(game);
         auto [eva_value, probs] = model->evaluate_state(state);
         value = eva_value;
+        if (useNoice && node == root) {
+            std::random_device rd;
+            std::mt19937 rng(rd());
+            add_dirichlet_noise(probs, 0.25, 0.03, rng);
+        }
         node->expand(game, moves, probs);
     }
 
@@ -131,7 +131,7 @@ void MonteCarloTree::backPropagate(Node *node, float value) {
     }
 }
 
-pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(Game game) {
+pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities() {
     Node *node = root;
     vector<pair<Point, int> > action_visits;
     for (auto &item: node->children) {
@@ -175,6 +175,34 @@ vector<float> MonteCarloTree::apply_temperature(vector<float> action_probabiliti
         prob /= sum;
     }
     return action_probabilities;
+}
+
+std::vector<double> MonteCarloTree::sample_dirichlet(int size, double alpha, std::mt19937 &rng) {
+    std::gamma_distribution gamma_dist(alpha, 1.0);
+    std::vector<double> samples(size);
+    double sum = 0.0;
+    for (int i = 0; i < size; ++i) {
+        samples[i] = gamma_dist(rng);
+        sum += samples[i];
+    }
+    // 归一化
+    for (int i = 0; i < size; ++i) {
+        samples[i] /= sum;
+    }
+    return samples;
+}
+
+void MonteCarloTree::add_dirichlet_noise(std::vector<float> &priors, double epsilon, double alpha, std::mt19937 &rng) {
+    int size = priors.size();
+    std::vector<double> noise = sample_dirichlet(size, alpha, rng);
+    for (int i = 0; i < size; ++i) {
+        priors[i] = float((1 - epsilon) * priors[i] + epsilon * noise[i]);
+    }
+    // 可选：归一化，防止数值误差
+    double sum = std::accumulate(priors.begin(), priors.end(), 0.0);
+    for (int i = 0; i < size; ++i) {
+        priors[i] /= float(sum);
+    }
 }
 
 void Node::release() {

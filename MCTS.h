@@ -13,6 +13,8 @@
 #include <limits>
 #include "Game.h"
 #include "Model.h"
+#include <random>
+#include <numeric>
 
 class Node {
 public:
@@ -21,14 +23,14 @@ public:
     int visits;
     double value_sum;
     double prior_prob;
-    double ucb{};
+    double ucb;
     unordered_map<Point, Node *, PointHash> children;
 
     Node(Node *parent = nullptr);
 
     bool isLeaf();
 
-    Node * selectChild(double exploration_factor);
+    Node *selectChild(double exploration_factor);
 
     void expand(Game &game, vector<Point> &actions, const vector<float> &prior_probs);
 
@@ -39,7 +41,7 @@ public:
 
 class MonteCarloTree {
 public:
-    MonteCarloTree(Model *model, float exploration_factor = 5);
+    MonteCarloTree(Model *model, float exploration_factor = 5, bool useNoice = false);
 
     void simulate(Game game, int i);
 
@@ -47,15 +49,24 @@ public:
 
     void backPropagate(Node *node, float value);
 
-    pair<vector<Point>, vector<float>> get_action_probabilities(Game game);
+    pair<vector<Point>, vector<float> > get_action_probabilities();
 
     vector<float> apply_temperature(vector<float> action_probabilities, float temperature);
-
 
 private:
     Node *root;
     Model *model;
     float exploration_factor;
+    bool useNoice = false;
+
+    static std::vector<double> sample_dirichlet(int size, double alpha, std::mt19937 &rng);
+
+    static void add_dirichlet_noise(
+        std::vector<float> &priors, // 原始概率
+        double epsilon, // 混合系数
+        double alpha, // Dirichlet参数
+        std::mt19937 &rng
+    );
 };
 
 

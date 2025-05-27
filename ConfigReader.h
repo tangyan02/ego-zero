@@ -4,8 +4,27 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include <stdexcept>
+using namespace std;
 
-std::map<std::string, std::string> readConfigFile(const std::string& filename = "application.conf");
+class ConfigReader {
+    map<string, string> map;
+
+    ConfigReader(const ConfigReader &) = delete;
+
+    ConfigReader &operator=(const ConfigReader &) = delete;
+
+    std::map<std::string, std::string> readConfigFile(const std::string &filename = "application.conf");
+
+public:
+    ConfigReader();
+
+    static ConfigReader &getInstance() {
+        static ConfigReader instance;
+        return instance;
+    }
+
+    static string get(const string &key);
+};
+
 
 #endif //CONFIG_READER

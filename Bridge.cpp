@@ -15,14 +15,13 @@ Point Bridge::parse_coordinates(const string &args) {
 Bridge::Bridge() {
 
     // Read configuration
-    auto config = readConfigFile("application.conf");
 
     // Parse parameters with defaults if not found
-    int boardSize = config.count("boardSize") ? stoi(config["boardSize"]) : 9;
-    float tieMu = config.count("tieMu") ? stof(config["tieMu"]) : 3.25f;
-    float explorationFactor = config.count("explorationFactor") ? stof(config["explorationFactor"]) : 3;
-    string modelPath = config.count("modelPath") ? config["modelPath"] : "./model/model_latest.onnx";
-    string coreType = config.count("coreType") ? config["coreType"] : "cpu";
+    int boardSize = stoi(ConfigReader::get("boardSize"));
+    float tieMu = stof(ConfigReader::get("tieMu"));
+    float explorationFactor = stof(ConfigReader::get("explorationFactor"));
+    string modelPath = ConfigReader::get("modelPath");
+    string coreType = ConfigReader::get("coreType");
 
     model = new Model();
     model->init(modelPath, coreType);
@@ -34,13 +33,6 @@ Bridge::Bridge() {
 }
 
 void Bridge::startGame() {
-
-    // Read configuration
-    auto config = readConfigFile("application.conf");
-
-    // Parse parameters with defaults if not found
-    string modelPath = config.count("modelPath") ? config["modelPath"] : "./model/model_latest.onnx";
-    string coreType = config.count("coreType") ? config["coreType"] : "cpu";
 
     std::string line;
     while (std::getline(std::cin, line)) {
@@ -105,7 +97,7 @@ void Bridge::predict(string &args) {
 
     std::vector<Point> moves;
     std::vector<float> moves_probs;
-    std::tie(moves, moves_probs) = mcts->get_action_probabilities(*game);
+    std::tie(moves, moves_probs) = mcts->get_action_probabilities();
 
     // 构造矩阵
     vector<tuple<int, int, float>> probs;

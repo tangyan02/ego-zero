@@ -3,6 +3,8 @@
 //
 
 #include "SelfPlay.h"
+
+#include "ConfigReader.h"
 #include "Utils.h"
 
 // 创建一个随机数生成器
@@ -21,6 +23,7 @@ void printGame(Model &model, Game &game, Point move, double rate,
     cout << pic << " move is " << move.x << ","
             << move.y
             << " on rate " << round(rate * 1000) / 1000
+            << " temperature " << temperature
             << " value " << -value
             << endl;
 
@@ -44,7 +47,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
     float explorationFactor,
     Model &model
 ) {
-    MonteCarloTree mcts = MonteCarloTree(&model, explorationFactor);
+    MonteCarloTree mcts = MonteCarloTree(&model, explorationFactor, true);
     std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > training_data;
 
     for (int i = 0; i < numGames; i++) {
@@ -52,12 +55,12 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
         std::vector<std::tuple<vector<vector<vector<float> > >, int, std::vector<float> > > game_data;
 
         int step = 0;
-        Node *node = new Node();
         while (!game.endGameCheck()) {
+            Node node;
             //开始mcts预测
             auto startTime = getSystemTime();
-            int simiNum = numSimulations - node->visits;
-            mcts.search(game, node, simiNum);
+            int simiNum = numSimulations;
+            mcts.search(game, &node, simiNum);
             if (simiNum > 0) {
                 cout << "======== " << shard << "-" << i << " =======" << endl << "search cost " << getSystemTime() -
                         startTime << " ms, simi num " << simiNum << ", "
@@ -66,9 +69,17 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
             std::vector<Point> moves;
             std::vector<float> moves_probs;
-            std::tie(moves, moves_probs) = mcts.get_action_probabilities(game);
+            std::tie(moves, moves_probs) = mcts.get_action_probabilities();
             float temperature = temperatureDefault;
-            float rate = 1;
+
+            if (int temperatureDownBeginStep = stoi(ConfigReader::get("temperatureDownBeginStep"));
+                game.history.size() > temperatureDownBeginStep) {
+                int beginStep = game.history.size() - temperatureDownBeginStep;
+                temperature -= static_cast<float>(beginStep) * stof(ConfigReader::get("decreasePerStep"));
+                if (temperature < stof(ConfigReader::get("minTemperature"))) {
+                    temperature = stof(ConfigReader::get("minTemperature"));
+                }
+            }
 
             Point move;
 
@@ -86,7 +97,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
                                                          action_probs_normalized.end());
             int index = distribution(gen);
             move = moves[index];
-            rate = action_probs_normalized[index];
+            float rate = action_probs_normalized[index];
 
             // 构造矩阵
             vector<float> probs_matrix(game.boardSize * game.boardSize, 0);
@@ -100,13 +111,13 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
 
             cout << "bannedMoves: ";
-            for (auto move : game.bannedMoves) {
+            for (auto move: game.bannedMoves) {
                 cout << "(" << move.x << "," << move.y << ") ";
             }
             cout << endl;
 
             cout << "eatMoves: ";
-            for (auto [move, gourp] : game.eatMoves) {
+            for (auto [move, gourp]: game.eatMoves) {
                 cout << "(" << move.x << "," << move.y << ") ";
             }
             cout << endl;
@@ -115,18 +126,6 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
             printGame(model, game, move, rate, temperature, probs_matrix);
             step++;
-
-            //更新node
-            for (const auto &item: node->children) {
-                if (item.first != move) {
-                    item.second->release();
-                }
-            }
-            for (const auto item: node->children) {
-                if (item.first == move) {
-                    node = item.second;
-                }
-            }
         }
 
         auto winner = game.calculateWinner();
@@ -154,10 +153,9 @@ void recordSelfPlay(
     float temperatureDefault,
     float explorationFactor,
     int shard,
-    string* modelPath,
-    string* coreType) {
+    string *modelPath,
+    string *coreType) {
     try {
-
         Model model;
         model.init(*modelPath, *coreType);
 
