@@ -100,17 +100,17 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             }
             game_data.emplace_back(Model::get_state(game), game.currentPlayer, probs_matrix);
 
-            cout << "bannedMoves: ";
-            for (auto move: game.bannedMoves) {
-                cout << "(" << move.x << "," << move.y << ") ";
-            }
-            cout << endl;
-
-            cout << "eatMoves: ";
-            for (auto [move, gourp]: game.eatMoves) {
-                cout << "(" << move.x << "," << move.y << ") ";
-            }
-            cout << endl;
+            // cout << "bannedMoves: ";
+            // for (auto move: game.bannedMoves) {
+            //     cout << "(" << move.x << "," << move.y << ") ";
+            // }
+            // cout << endl;
+            //
+            // cout << "eatMoves: ";
+            // for (auto [move, gourp]: game.eatMoves) {
+            //     cout << "(" << move.x << "," << move.y << ") ";
+            // }
+            // cout << endl;
 
             game.makeMove(move.x, move.y);
 
