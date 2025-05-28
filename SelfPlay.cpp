@@ -69,7 +69,6 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
             std::vector<Point> moves;
             std::vector<float> moves_probs;
-            std::tie(moves, moves_probs) = mcts.get_action_probabilities();
             float temperature = temperatureDefault;
 
             if (int temperatureDownBeginStep = stoi(ConfigReader::get("temperatureDownBeginStep"));
@@ -81,23 +80,14 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
                 }
             }
 
-            Point move;
-
-            std::vector<float> action_probs_temperature = mcts.apply_temperature(moves_probs, temperature);
-
-            // 归一化概率分布
-            std::vector<float> action_probs_normalized;
-            float sum = std::accumulate(action_probs_temperature.begin(), action_probs_temperature.end(), 0.0f);
-            for (const auto &prob: action_probs_temperature) {
-                action_probs_normalized.push_back(prob / sum);
-            }
+            std::tie(moves, moves_probs) = mcts.get_action_probabilities(temperature);
 
             // 随机选择
-            std::discrete_distribution<int> distribution(action_probs_normalized.begin(),
-                                                         action_probs_normalized.end());
+            std::discrete_distribution<int> distribution(moves_probs.begin(),
+                                                         moves_probs.end());
             int index = distribution(gen);
-            move = moves[index];
-            float rate = action_probs_normalized[index];
+            Point  move = moves[index];
+            float rate = moves_probs[index];
 
             // 构造矩阵
             vector<float> probs_matrix(game.boardSize * game.boardSize, 0);

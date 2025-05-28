@@ -49,9 +49,7 @@ public:
 
     void backPropagate(Node *node, float value);
 
-    pair<vector<Point>, vector<float> > get_action_probabilities();
-
-    vector<float> apply_temperature(vector<float> action_probabilities, float temperature);
+    pair<vector<Point>, vector<float> > get_action_probabilities(float temperature = 1);
 
 private:
     Node *root;
