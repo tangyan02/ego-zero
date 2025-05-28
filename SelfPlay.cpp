@@ -139,8 +139,9 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             }
             training_data.emplace_back(state, mcts_probs, std::vector<float>{value});
         }
-
-        cout << "winner is " << ((winner == 1) ? "x" : ((winner == 2) ? "o" : " nobody")) << endl;
+        auto [blackScore,whiteScore] = game.calculateScore();
+        cout << "winner is " << ((winner == 1) ? "x" : ((winner == 2) ? "o" : " nobody"))
+                << " score " << blackScore << ":" << whiteScore << endl;
     }
     return training_data;
 }
