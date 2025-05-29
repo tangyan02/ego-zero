@@ -6,7 +6,7 @@
 #define EGO_ZERO_BRIDGE_H
 
 #include "ConfigReader.h"
-#include "game.h"
+#include "Game.h"
 #include "MCTS.h"
 #include <iostream>
 #include <string>

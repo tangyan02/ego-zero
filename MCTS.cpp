@@ -59,6 +59,7 @@ void Node::expand(Game &game, vector<Point> &moves, const vector<float> &prior_p
         auto prob = probs_arr[i];
         Node *child = new Node(this);
         child->move = move;
+        child->parent = this;
 
         // 归一化处理
         if (sum_probs != 0) {

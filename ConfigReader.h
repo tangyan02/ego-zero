@@ -7,7 +7,7 @@
 using namespace std;
 
 class ConfigReader {
-    map<string, string> map;
+    std::map<string, string> map;
 
     ConfigReader(const ConfigReader &) = delete;
 
