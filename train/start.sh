@@ -1,1 +1,1 @@
-nohup python Main.py > output.log 2>&1 &
+nohup python MainCpp.py > output.log 2>&1 &
