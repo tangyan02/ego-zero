@@ -15,7 +15,6 @@ bool Node::isLeaf() {
 
 Node *Node::selectChild(double exploration_factor) {
     int total_visits = visits;
-    vector<double> ucb_values;
     for (const auto &child: children) {
         double q = 0;
         if (child.second->visits > 0) {
