@@ -22,13 +22,15 @@ void selfPlay() {
     int numProcesses = stoi(ConfigReader::get("numProcesses"));
     string coreType = ConfigReader::get("coreType");
 
+    Context* context = new Context(numGames);
+
     std::vector<std::thread> threads;
     // 启动多个线程
     for (int i = 0; i < numProcesses; ++i) {
         threads.emplace_back(recordSelfPlay,
                              boardSize,
                              tieMu,
-                             numGames,
+                             context,
                              numSimulation,
                              temperatureDefault,
                              explorationFactor,

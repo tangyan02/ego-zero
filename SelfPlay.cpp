@@ -66,7 +66,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
     int shard,
     int boardSize,
     float tieMu,
-    int numGames,
+    Context* context,
     int numSimulations,
     float temperatureDefault,
     float explorationFactor,
@@ -75,7 +75,11 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
     MonteCarloTree mcts = MonteCarloTree(&model, explorationFactor, true);
     std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > training_data;
 
-    for (int i = 0; i < numGames; i++) {
+    while (true){
+        int gameNum = context->counter.fetch_add(1);
+        if (gameNum >= context->max) {
+            break;
+        }
         Game game(boardSize, tieMu);
         std::vector<std::tuple<vector<vector<vector<float> > >, int, std::vector<float> > > game_data;
 
@@ -87,7 +91,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
             int simiNum = numSimulations;
             mcts.search(game, &node, simiNum);
             if (simiNum > 0) {
-                cout << "======== " << shard << "-" << i << " =======" << endl << "search cost " << getSystemTime() -
+                cout << "======== " << shard << "-" << gameNum << " =======" << endl << "search cost " << getSystemTime() -
                         startTime << " ms, simi num " << simiNum << ", "
                         << "per simi " << (getSystemTime() - startTime) / (float) simiNum << " ms" << endl;
             }
@@ -151,7 +155,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 void recordSelfPlay(
     int boardSize,
     float tieMu,
-    int numGames,
+    Context* context,
     int numSimulations,
     float temperatureDefault,
     float explorationFactor,
@@ -166,7 +170,7 @@ void recordSelfPlay(
         std::ofstream file("record/data_" + to_string(shard) + ".txt");
 
         if (file.is_open()) {
-            auto data = selfPlay(shard, boardSize, tieMu, numGames, numSimulations,
+            auto data = selfPlay(shard, boardSize, tieMu, context, numSimulations,
                                  temperatureDefault, explorationFactor, model);
             file << data.size() << endl;
             std::cout << "data count " << data.size() << endl;
