@@ -1,6 +1,3 @@
-//
-// Created by 唐雁 on 2025/4/16.
-//
 
 #include "SelfPlay.h"
 
@@ -37,6 +34,34 @@ void printGame(Model &model, Game &game, Point move, double rate,
     }
 }
 
+
+tuple<float, Point, float> getNextMove(int step, float temperatureDefault,vector<float>& move_probs,
+                                       vector<Point>& moves, MonteCarloTree& mcts)
+{
+    //按温度决策
+    float temperature;
+    Point move;
+    float rate;
+
+    if (step < stoi(ConfigReader::get("temperatureDownBeginStep")))
+    {
+        //前n步，温度>0
+        temperature = temperatureDefault;
+        std::discrete_distribution<int> distribution(move_probs.begin(), move_probs.end());
+        int index = distribution(gen);
+        move = moves[index];
+        rate = move_probs[index];
+    }
+    else
+    {
+        //温度为0
+        temperature = 0;
+        move = mcts.get_max_visit_move();
+        rate = 1;
+    }
+    return tuple(temperature, move, rate);
+}
+
 std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std::vector<float> > > selfPlay(
     int shard,
     int boardSize,
@@ -67,27 +92,14 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
                         << "per simi " << (getSystemTime() - startTime) / (float) simiNum << " ms" << endl;
             }
 
-            std::vector<Point> moves;
-            std::vector<float> moves_probs;
-            float temperature = temperatureDefault;
-
-            if (int temperatureDownBeginStep = stoi(ConfigReader::get("temperatureDownBeginStep"));
-                game.history.size() > temperatureDownBeginStep) {
-                int beginStep = game.history.size() - temperatureDownBeginStep;
-                temperature -= static_cast<float>(beginStep) * stof(ConfigReader::get("decreasePerStep"));
-                if (temperature < stof(ConfigReader::get("minTemperature"))) {
-                    temperature = stof(ConfigReader::get("minTemperature"));
-                }
-            }
-
-            std::tie(moves, moves_probs) = mcts.get_action_probabilities(temperature);
+            auto [moves, moves_probs] = mcts.get_action_probabilities();
+            //决策下一步
+            auto [temperature, move, rate] = getNextMove(step, temperatureDefault, moves_probs, moves, mcts);
+            std::tie(moves, moves_probs) = mcts.get_action_probabilities();
 
             // 随机选择
             std::discrete_distribution<int> distribution(moves_probs.begin(),
                                                          moves_probs.end());
-            int index = distribution(gen);
-            Point  move = moves[index];
-            float rate = moves_probs[index];
 
             // 构造矩阵
             vector<float> probs_matrix(game.boardSize * game.boardSize, 0);

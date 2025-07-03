@@ -131,7 +131,7 @@ void MonteCarloTree::backPropagate(Node *node, float value) {
     }
 }
 
-pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(float temperature) {
+pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities() {
     Node *node = root;
     vector<pair<Point, int> > action_visits;
     for (auto &item: node->children) {
@@ -145,52 +145,38 @@ pair<vector<Point>, vector<float> > MonteCarloTree::get_action_probabilities(flo
         visits.push_back(item.second);
     }
 
-    vector<float> action_probs(moves.size(), 0.0f);
+    // 计算总和
+    int sum = 0;
+    for (int visit: visits) {
+        sum += visit;
+    }
 
-    // 防止温度过小导致溢出
-    if (temperature < 1e-3) {
-        // 只选最大访问数的动作
-        int max_visit = -1;
-        size_t max_idx = 0;
-        for (size_t i = 0; i < visits.size(); ++i) {
-            if (visits[i] > max_visit) {
-                max_visit = visits[i];
-                max_idx = i;
-            }
-        }
-        if (!visits.empty()) {
-            action_probs[max_idx] = 1.0f;
-        }
-    } else {
-        // 用log技巧防止溢出
-        std::vector<float> log_probs(moves.size(), 0.0f);
-        float max_log = -std::numeric_limits<float>::infinity();
-        for (size_t i = 0; i < visits.size(); ++i) {
-            if (visits[i] > 0) {
-                log_probs[i] = std::log(static_cast<float>(visits[i])) / temperature;
-                if (log_probs[i] > max_log) max_log = log_probs[i];
-            } else {
-                log_probs[i] = -std::numeric_limits<float>::infinity();
-            }
-        }
-        // log-sum-exp
-        float sum_exp = 0.0f;
-        for (size_t i = 0; i < log_probs.size(); ++i) {
-            if (log_probs[i] > -std::numeric_limits<float>::infinity()) {
-                action_probs[i] = std::exp(log_probs[i] - max_log);
-                sum_exp += action_probs[i];
-            } else {
-                action_probs[i] = 0.0f;
-            }
-        }
-        if (sum_exp > 0.0f) {
-            for (auto &prob : action_probs) {
-                prob /= sum_exp;
-            }
-        }
+    // 归一化为概率分布
+    vector<float> action_probs;
+    for (const int visit: visits) {
+        float prob = static_cast<float>(visit) / static_cast<float>(sum);
+        action_probs.push_back(prob);
     }
 
     return make_pair(moves, action_probs);
+}
+
+Point MonteCarloTree::get_max_visit_move() {
+    Node* node = root;
+    vector<pair<Point, int>> action_visits;
+
+    Point maxVisitMove;
+    int maxVisit = -1;
+    for (auto& item : node->children)
+    {
+        auto visit = item.second->visits;
+        if (visit > maxVisit)
+        {
+            maxVisit = visit;
+            maxVisitMove = item.first;
+        }
+    }
+    return maxVisitMove;
 }
 
 std::vector<double> MonteCarloTree::sample_dirichlet(int size, double alpha, std::mt19937 &rng) {

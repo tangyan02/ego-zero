@@ -49,7 +49,9 @@ public:
 
     void backPropagate(Node *node, float value);
 
-    pair<vector<Point>, vector<float> > get_action_probabilities(float temperature = 1);
+    pair<vector<Point>, vector<float>> get_action_probabilities();
+
+    Point get_max_visit_move();
 
 private:
     Node *root;
