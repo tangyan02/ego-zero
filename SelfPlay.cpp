@@ -9,12 +9,12 @@ std::random_device rd;
 std::mt19937 gen(rd());
 
 
-void printGame(Model &model, Game &game, Point move, double rate,
+void printGame(Node& node, Game &game, Point move, double rate,
                float temperature, vector<float> probs) {
     game.render();
 
     auto state = Model::get_state(game);
-    auto [value, prob_metrix] = model.evaluate_state(state);
+    auto value = node.value_sum/node.visits;
 
     std::string pic = ((3 - game.currentPlayer) == 1) ? "x" : "o";
     cout << pic << " move is " << move.x << ","
@@ -130,7 +130,7 @@ std::vector<std::tuple<vector<vector<vector<float> > >, std::vector<float>, std:
 
             game.makeMove(move.x, move.y);
 
-            printGame(model, game, move, rate, temperature, probs_matrix);
+            printGame(node, game, move, rate, temperature, probs_matrix);
             step++;
         }
 
