@@ -96,7 +96,7 @@ if __name__ == "__main__":
         Logger.infoD(f"episode {i_episode} 完成")
 
         # 更新计数
-        count = num_processes * numGames
+        count = numGames
         total_games_count = update_count(count)
 
         # 记录迭代信息
